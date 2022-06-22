@@ -1,0 +1,75 @@
+* {
+    scroll-behavior: smooth;
+    word-wrap: break-word;
+}
+
+/* Disable display of the web scroll bar */
+*:not(.see-scrollbar)::-webkit-scrollbar {
+    display: none;
+}
+
+/* Stop bootstrap from being responsive below
+  320px. */
+html,
+body {
+    min-width: 320px;
+    padding: 0;
+    margin: 0;
+}
+
+a,
+p,
+h1,
+h2,
+h3,
+h4,
+h5 {
+    padding: 0;
+    margin: 0;
+}
+
+.bg-darker {
+    background-color: #28282f !important;
+}
+
+.fit {
+    object-fit: cover;
+}
+
+/* MAX WIDTH */
+.mw-2 {
+    max-width: 240px;
+}
+
+.mw-3 {
+    max-width: 460px;
+}
+
+.mw-4 {
+    max-width: 720px;
+}
+
+.mw-5 {
+    max-width: 1500px;
+}
+
+/* HEIGHT */
+.h-screen {
+    height: 100vh;
+}
+
+.min-h-screen {
+    min-height: 100vh;
+}
+
+.ar-16-9 {
+    aspect-ratio: 16/9;
+}
+
+.line {
+    height: 1px;
+}
+
+.overflow-y-scroll {
+    overflow-y: scroll;
+}
