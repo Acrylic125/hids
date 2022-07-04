@@ -1,11 +1,9 @@
 import sqlite3 as sql
-from sqlite3 import Cursor
 from pathlib import Path
 
 
 def create_connection():
-    mod_path = Path(__file__).parent.parent
-    con = sql.connect(str(mod_path) + "/hids.db")
+    con = sql.connect("hids.db")
     return con
 
 
@@ -35,6 +33,6 @@ def use_executor(fk_constraints=True):
     con = create_connection()
     executor = SQLExecutor(con)
     if fk_constraints:
-        executor.execute('''PRAGMA foreign_keys = ON;''')
+        executor.execute("PRAGMA foreign_keys = ON;")
     return executor
 
