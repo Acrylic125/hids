@@ -29,7 +29,7 @@ def find_device_settings(id):
     for row in results:
         setting_name, setting_value = row[1], row[2]
         setting = ds.get(setting_name)
-        print(f"Parsing {setting_name}: {setting_value}")
+        # print(f"Parsing {setting_name}: {setting_value}")
         if setting is None or setting_value is None:
             continue
         settings[setting_name] = setting.deserialize(setting_value)
