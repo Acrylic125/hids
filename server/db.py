@@ -13,12 +13,12 @@ class SQLExecutor:
     def __init__(self, con):
         self.con = con
 
-    def execute(self, queryString, args=()) -> Cursor:
+    def execute(self, queryString, args=()):
         cur = self.con.cursor()
         executed = cur.execute(queryString, args)
         return executed
 
-    def script(self, script) -> Cursor:
+    def script(self, script):
         cur = self.con.cursor()
         executed = cur.executescript(script)
         return executed

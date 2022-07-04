@@ -1,6 +1,3 @@
-from typing import Dict
-
-
 class Setting:
 
     def __init__(self, default_value):
@@ -9,7 +6,7 @@ class Setting:
     def deserialize(self, value):
         pass
 
-    def serialize(self, value) -> str:
+    def serialize(self, value):
         pass
 
 
@@ -22,7 +19,7 @@ class SettingImpl(Setting):
     def deserialize(self, value):
         return self.deserializer(value)
 
-    def serialize(self, value) -> str:
+    def serialize(self, value):
         return self.serializer(value)
 
 
@@ -42,20 +39,20 @@ def val_validate_activation_mode(value):
     raise ValueError("Value must be one of: ALWAYS, LIGHTS_OFF, DISABLED")
 
 
-def deserialize_float(serialized: str, default_value: float):
+def deserialize_float(serialized, default_value):
     try:
         return float(serialized)
     except ValueError:
         return default_value
 
 
-def deserialize_activation_mode(serialized: str, default_value: str):
+def deserialize_activation_mode(serialized, default_value):
     if serialized in ["ALWAYS", "LIGHTS_OFF", "DISABLED"]:
         return serialized
     return default_value
 
 
-settings: Dict[str, Setting] = {
+settings = {
     "lightsDuration": create_setting(
         30,
         lambda x: str(val_validate_float(x)),
