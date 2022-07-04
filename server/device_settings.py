@@ -1,18 +1,7 @@
-class Setting:
+class Setting(object):
 
-    def __init__(self, default_value):
-        self.default_value = default_value
-
-    def deserialize(self, value):
-        pass
-
-    def serialize(self, value):
-        pass
-
-
-class SettingImpl(Setting):
     def __init__(self, default_value, serializer, deserializer):
-        super(Setting).__init__(default_value)
+        self.default_value = default_value
         self.serializer = serializer
         self.deserializer = deserializer
 
@@ -24,7 +13,7 @@ class SettingImpl(Setting):
 
 
 def create_setting(default_value, serializer, deserializer):
-    return SettingImpl(default_value, serializer, deserializer)
+    return Setting(default_value, serializer, deserializer)
 
 
 def val_validate_float(value):
