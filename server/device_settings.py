@@ -12,7 +12,7 @@ class Setting:
 
 class SettingImpl(Setting):
     def __init__(self, default_value, serializer, deserializer):
-        super().__init__(default_value)
+        super(Setting).__init__(default_value)
         self.serializer = serializer
         self.deserializer = deserializer
 
