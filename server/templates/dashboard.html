@@ -27,7 +27,11 @@
         // Communicate with backend.
         async function getAllDevices() {
             const result = await axios.get(BASE_API_URL + "devices");
-            const data = result.data.data;
+            const payload = result.data;
+            if (!payload.ok) {
+                return [];
+            }
+            const { data } = payload;
             return data instanceof Array ? data : [];
         }
 
@@ -111,7 +115,12 @@
                 name,
                 password
             });
-            return result.data.data;
+            const payload = result.data;
+            if (!payload.ok) {
+                throw new Error(payload.message);
+            }
+            const { data } = payload;
+            return data;
         }
 
         async function putDeviceSettings(deviceId, { lightsDuration, sirensDuration, activationMode }) {
@@ -196,11 +205,15 @@
         // Event listeners.
         function listenAddDeviceForm() {
             const formElement = $("#add-device-form");
-            formElement.submit(function (event) {
+            formElement.submit(async function (event) {
                 event.preventDefault();
                 const name = $("#add-device-name-input").val();
                 const password = $("#add-device-password-input").val();
-                postDeviceCreation({ name, password })
+                try {
+                    await postDeviceCreation({name, password})
+                } catch (error) {
+                    console.log(error);
+                }
             });
         }
 

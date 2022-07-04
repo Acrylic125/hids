@@ -50,6 +50,17 @@ def find_device_captures(id):
     return captures
 
 
+def add_device_capture(device_id, image_loc, capture_time):
+    executor = db.use_executor()
+    cursor = executor.execute(
+        "INSERT INTO device_captures (device_id, image_loc, capture_time)  VALUES (?, ?, ?)", (device_id, image_loc, capture_time))
+    executor.done()
+
+    return {
+        "id": cursor.lastrowid
+    }
+
+
 def find_all_devices():
     executor = db.use_executor()
     cursor = executor.execute(
