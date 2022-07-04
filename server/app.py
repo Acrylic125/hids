@@ -46,17 +46,59 @@ def find_all_devices():
 
 @app.route("/devices/<deviceId>", methods=["GET"])
 def find_device(deviceId=None):
-    return repository.find_device_by_id(deviceId)
+    try:
+        device = repository.find_device_by_id(deviceId)
+        if device is None:
+            return "Device Not Found", 404
+        else:
+            return {"ok": True, "data": device}
+    except Exception:
+        print(traceback.format_exc())
+        return "Internal server error", 500
 
 
 @app.route("/devices/<deviceId>/settings", methods=["GET"])
 def find_device_settings(deviceId=None):
-    return repository.find_device_settings(deviceId)
-
+    try:
+        device_settings = repository.find_device_settings(deviceId)
+        if device_settings is None or len(device_settings) == 0:
+            return "settings for device could not be found or it does not exist", 404
+        else:
+            return device_settings, 200
+    except Exception:
+        print(traceback.format_exc())
+        return "Internal server error", 500
+    
 
 @app.route("/devices/<deviceId>/captures", methods=["GET"])
 def find_device_captures(deviceId=None):
-    return repository.find_device_settings(deviceId)
+    try:
+        device_captures = repository.find_device_captures(deviceId)
+        if device_captures is None: 
+            return "Device does not have any captures", 200
+        else:
+            return device_captures, 200
+    except Exception:
+        print(traceback.format_exc())
+        return "Internal server error", 500
+
+
+@app.route("/devices/<deviceId>", methods=["PUT"])
+def update_device_settings(deviceId):
+    payload = request.json
+
+    try:
+        didItWork = repository.update_device_settings(deviceId, payload)
+        return {"ok": didItWork, "data": {"Message": 'Device has been updated !'}}
+    except ValueError as e:
+        return str(e)
+    except Exception:
+        print(traceback.format_exc())
+        return "Internal server error", 500
+
+
+#add device to user
+
 
 
 if __name__ == "__main__":
