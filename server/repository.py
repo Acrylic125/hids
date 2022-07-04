@@ -1,4 +1,4 @@
-from db import db
+import db
 from device_settings import settings as ds
 
 

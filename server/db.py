@@ -1,4 +1,3 @@
-import os.path
 import sqlite3 as sql
 from sqlite3 import Cursor
 from pathlib import Path
@@ -6,7 +5,7 @@ from pathlib import Path
 
 def create_connection():
     mod_path = Path(__file__).parent.parent
-    con = sql.connect(f'{mod_path}/hids.db')
+    con = sql.connect(str(mod_path) + "/hids.db")
     return con
 
 
