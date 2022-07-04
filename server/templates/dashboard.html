@@ -22,121 +22,13 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/static/styles/layout.css">
     <script defer>
-        const BASE_API_URL = "http://localhost:3000/api/v1/";
+        const BASE_API_URL = "http://127.0.0.1:5000/";
 
         // Communicate with backend.
         async function getAllDevices() {
             const result = await axios.get(BASE_API_URL + "devices");
-            return [
-                {
-                    id: 1,
-                    name: "Device 1",
-                },
-                {
-                    id: 2,
-                    name: "Device 2",
-                },
-                {
-                    id: 3,
-                    name: "Device 3",
-                },
-                {
-                    id: 4,
-                    name: "Device 4",
-                },
-                {
-                    id: 5,
-                    name: "Device 5",
-                },
-                {
-                    id: 6,
-                    name: "Device 6",
-                },
-                {
-                    id: 7,
-                    name: "Device 7",
-                },
-                {
-                    id: 8,
-                    name: "Device 8",
-                },
-                {
-                    id: 9,
-                    name: "Device 9",
-                },
-                {
-                    id: 10,
-                    name: "Device 10",
-                },
-                {
-                    id: 11,
-                    name: "Device 11",
-                },
-                {
-                    id: 12,
-                    name: "Device 12",
-                },
-                {
-                    id: 13,
-                    name: "Device 13",
-                },
-                {
-                    id: 14,
-                    name: "Device 14",
-                },
-                {
-                    id: 15,
-                    name: "Device 15",
-                },
-                {
-                    id: 16,
-                    name: "Device 16",
-                },
-                {
-                    id: 17,
-                    name: "Device 17",
-                },
-                {
-                    id: 18,
-                    name: "Device 18",
-                },
-                {
-                    id: 19,
-                    name: "Device 19",
-                },
-                {
-                    id: 20,
-                    name: "Device 20",
-                },
-                {
-                    id: 21,
-                    name: "Device 21",
-                },
-                {
-                    id: 22,
-                    name: "Device 22",
-                },
-                {
-                    id: 23,
-                    name: "Device 23",
-                },
-                {
-                    id: 24,
-                    name: "Device 24",
-                },
-                {
-                    id: 25,
-                    name: "Device 25",
-                },
-                {
-                    id: 26,
-                    name: "Device 26",
-                },
-                {
-                    id: 27,
-                    name: "Device 27",
-                },
-            ]
+            const data = result.data.data;
+            return data instanceof Array ? data : [];
         }
 
         function getDeviceCaptures(deviceId) {
@@ -214,15 +106,16 @@
             ];
         }
 
-        function postDeviceCreation({ name, password }) {
-            return axios.post(BASE_API_URL + "device", {
+        async function postDeviceCreation({ name, password }) {
+            const result = await axios.post(BASE_API_URL + "devices", {
                 name,
                 password
             });
+            return result.data.data;
         }
 
-        function putDeviceSettings(deviceId, { lightsDuration, sirensDuration, activationMode }) {
-            return axios.put(BASE_API_URL + "device", {
+        async function putDeviceSettings(deviceId, { lightsDuration, sirensDuration, activationMode }) {
+            const result = await axios.put(BASE_API_URL + "devices", {
                 lightsDuration, sirensDuration, activationMode
             });
         }
@@ -290,9 +183,9 @@
         }
 
         // Selecting and deselecting devices and captures.
-        function selectDevice(deviceId) {
+        async function selectDevice(deviceId) {
             console.log(deviceId);
-            const devices = getAllDevices();
+            const devices = await getAllDevices();
             showDevicesSidear(devices, deviceId);
 
             const deviceCaptures = getDeviceCaptures(deviceId);

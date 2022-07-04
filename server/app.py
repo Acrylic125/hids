@@ -20,28 +20,28 @@ def create_device():
     password = payload.get("password")
 
     if name is None or type(name) is not str or not (0 <= len(name.strip()) <= 32):
-        return "Invalid name", 400
+        return {"ok": False, "message": "Invalid name"}, 400
     if password is None or type(password) is not str or not (0 <= len(password.strip()) <= 65535):
-        return "Invalid password", 400
+        return {"ok": False, "message": "Invalid password"}, 400
 
     try:
         device = repository.create_device(name, password)
-        return device, 201
+        return {"ok": True, "data": device}, 201
     except IntegrityError:
-        return "Device already exists", 422
+        return {"ok": False, "message": "Device already exists"}, 422
     except Exception:
         print(traceback.format_exc())
-        return "Internal server error", 500
+        return {"ok": False, "message": "Internal server error"}, 500
 
 
-@app.route("/devices/", methods=["GET"])
+@app.route("/devices", methods=["GET"])
 def find_all_devices():
     try:
         devices = repository.find_all_devices()
-        return devices, 200
+        return {"ok": True, "data": devices}, 200
     except Exception:
         print(traceback.format_exc())
-        return "Internal server error", 500
+        return {"ok": False, "message": "Internal server error"}, 500
 
 
 @app.route("/devices/<deviceId>", methods=["GET"])
