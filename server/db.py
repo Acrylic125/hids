@@ -1,5 +1,4 @@
 import sqlite3 as sql
-from pathlib import Path
 
 
 def create_connection():
