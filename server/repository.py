@@ -7,8 +7,7 @@ def create_device(
 ):
     executor = db.use_executor()
     cursor = executor.execute(
-        '''INSERT INTO devices (name, password) 
-           VALUES (?, ?)''', (name, password))
+        "INSERT INTO devices (name, password) VALUES (?, ?)", (name, password))
     executor.done()
 
     return {
@@ -19,9 +18,7 @@ def create_device(
 def find_device_settings(id):
     executor = db.use_executor()
     cursor = executor.execute(
-        '''SELECT device_id, setting_name, value
-           FROM device_settings ds 
-           WHERE device_id = ?''', (id, ))
+        "SELECT device_id, setting_name, value FROM device_settings ds  WHERE device_id = ?", (id, ))
     results = cursor.fetchall()
     executor.done()
 
@@ -39,9 +36,7 @@ def find_device_settings(id):
 def find_device_captures(id):
     executor = db.use_executor()
     cursor = executor.execute(
-        '''SELECT id, image_loc, capture_time
-            FROM device_captures 
-            WHERE device_id = ?''', (id, ))
+        "SELECT id, image_loc, capture_time FROM device_captures  WHERE device_id = ?", (id, ))
     results = cursor.fetchall()
     executor.done()
 
@@ -58,8 +53,7 @@ def find_device_captures(id):
 def find_all_devices():
     executor = db.use_executor()
     cursor = executor.execute(
-        '''SELECT id, name
-            FROM devices''')
+        "SELECT id, name FROM devices")
     results = cursor.fetchall()
     executor.done()
 
@@ -75,8 +69,7 @@ def find_all_devices():
 def add_device_to_user(user_id, device_id):
     executor = db.use_executor()
     cursor = executor.execute(
-        '''INSERT INTO user_devices (user_id, device_id) 
-           VALUES (?, ?)''', (user_id, device_id))
+        "INSERT INTO user_devices (user_id, device_id)  VALUES (?, ?)", (user_id, device_id))
     executor.done()
 
     return {
@@ -87,13 +80,7 @@ def add_device_to_user(user_id, device_id):
 def find_all_devices_for_user(userid):
     executor = db.use_executor()
     cursor = executor.execute(
-        '''SELECT d.id, d.name 
-            FROM devices d 
-            INNER JOIN user_devices ud
-                  ON d.id = ud.device_id 
-            INNER JOIN users u 
-                  ON ud.user_id = u.id 
-            WHERE u.id = ?''', (userid, ))
+        "SELECT d.id, d.name  FROM devices d  INNER JOIN user_devices ud ON d.id = ud.device_id INNER JOIN users u  ON ud.user_id = u.id  WHERE u.id = ?", (userid, ))
     results = cursor.fetchall()
     executor.done()
 
@@ -109,10 +96,7 @@ def find_all_devices_for_user(userid):
 def find_device_by_id(id):
     executor = db.use_executor()
     cursor = executor.execute(
-        '''SELECT id, name 
-            FROM devices 
-            WHERE id = ? 
-            LIMIT 1''', (id, ))
+        "SELECT id, name FROM devices  WHERE id = ?  LIMIT 1", (id, ))
     result = cursor.fetchone()
     executor.done()
 
@@ -146,7 +130,6 @@ def update_device_settings(
     # Update settings
     executor = db.use_executor()
     executor.execute(
-        f'''INSERT OR REPLACE INTO device_settings (device_id, setting_name, value)
-            VALUES {placeholder}''', tuple(placeholder_values))
+        "INSERT OR REPLACE INTO device_settings (device_id, setting_name, value) VALUES " + placeholder, tuple(placeholder_values))
     executor.done()
     return True
