@@ -42,11 +42,11 @@ def deserialize_activation_mode(serialized, default_value):
 
 
 settings = {
-    "lightsDuration": create_setting(
+    "cooldown": create_setting(
         30,
         lambda x: str(val_validate_float(x)),
         lambda x: deserialize_float(x, 30)),
-    "sirensDuration": create_setting(
+    "triggerDuration": create_setting(
         30,
         lambda x: str(val_validate_float(x)),
         lambda x: deserialize_float(x, 30)),
