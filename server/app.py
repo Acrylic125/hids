@@ -1,15 +1,15 @@
 import os
 from sqlite3 import IntegrityError
 from datetime import datetime
-
-from flask import Flask, render_template, request
+import uuid
+from flask import Flask, render_template, request, send_file
 import repository
 import traceback
 from werkzeug.utils import secure_filename
 
 from os.path import join, dirname, realpath
 
-UPLOAD_FOLDER = join(dirname(realpath(__file__)), 'static/uploads/..')
+UPLOAD_FOLDER = join(dirname(realpath(__file__)), 'uploads/')
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
@@ -130,7 +130,7 @@ def allowed_file(filename):
 
 
 def upload_file(file):
-    filename = secure_filename(file.filename)
+    filename = secure_filename(str(uuid.uuid4()) + file.filename)
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     return filename
 
