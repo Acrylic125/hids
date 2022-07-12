@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 from os.path import join, dirname, realpath
 
 UPLOAD_FOLDER = join(dirname(realpath(__file__)), 'uploads/')
-ALLOWED_IMAGE_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -112,14 +112,30 @@ def update_device_settings(deviceId):
         return {"ok": False, "message": "Internal server error"}, 500
 
 
-@app.route("/user/<userId>/devices/<deviceId>", methods=["POST"])
-def create_user_device(userId, deviceId):
+@app.route("/users/<userId>/devices", methods=["POST"])
+def create_user_device(userId):
+    payload = request.json
+    name = payload.get("name")
+    password = payload.get("password")
     try:
-        device = repository.add_device_to_user(userId, deviceId)
-        return {"ok": True, "data": device}, 201
+        device = repository.find_device_by_credentials(name, password)
+        if device is None:
+            return {"ok": False, "message": "Invalid device credentials"}, 404
+        userDevice = repository.add_device_to_user(userId, device["id"])
+        return {"ok": True, "data": userDevice}, 201
     except IntegrityError:
         print(traceback.format_exc())
         return {"ok": False, "message": "Device already added to user, or device or user does not exist"}, 422
+    except Exception:
+        print(traceback.format_exc())
+        return {"ok": False, "message": "Internal server error"}, 500
+
+
+@app.route("/users/<userId>/devices", methods=["GET"])
+def find_user_devices(userId):
+    try:
+        device = repository.find_all_devices_for_user(userId)
+        return {"ok": True, "data": device}, 200
     except Exception:
         print(traceback.format_exc())
         return {"ok": False, "message": "Internal server error"}, 500
@@ -167,7 +183,7 @@ def create_device_capture(deviceId):
 def find_device_capture_image(image_loc):
     image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_loc)
     if os.path.isfile(image_path):
-        return send_file(image_path)
+        return send_file(image_path), 200
     else:
         return {"ok": False, "message": "Image does not exist"}, 404
 
