@@ -18,7 +18,7 @@ def create_device(
 def find_device_settings(id):
     executor = db.use_executor()
     cursor = executor.execute(
-        "SELECT device_id, setting_name, value FROM device_settings ds  WHERE device_id = ?", (id, ))
+        "SELECT device_id id, setting_name settingName, value FROM device_settings ds WHERE device_id = ?", (id, ))
     results = cursor.fetchall()
     executor.done()
 
@@ -36,7 +36,7 @@ def find_device_settings(id):
 def find_device_captures(id):
     executor = db.use_executor()
     cursor = executor.execute(
-        "SELECT id, image_loc, capture_time FROM device_captures  WHERE device_id = ?", (id, ))
+        "SELECT id, image_loc, capture_time FROM device_captures WHERE device_id = ?", (id, ))
     results = cursor.fetchall()
     executor.done()
 
@@ -44,8 +44,8 @@ def find_device_captures(id):
     for row in results:
         captures.append({
             "id": row[0],
-            "image_loc": row[1],
-            "capture_time": row[2]
+            "imageLoc": row[1],
+            "captureTime": row[2]
         })
     return captures
 
@@ -80,7 +80,7 @@ def find_all_devices():
 def add_device_to_user(user_id, device_id):
     executor = db.use_executor()
     cursor = executor.execute(
-        "INSERT INTO user_devices (user_id, device_id)  VALUES (?, ?)", (user_id, device_id))
+        "INSERT INTO user_devices (user_id, device_id) VALUES (?, ?)", (user_id, device_id))
     executor.done()
 
     return {
@@ -91,7 +91,7 @@ def add_device_to_user(user_id, device_id):
 def find_all_devices_for_user(userid):
     executor = db.use_executor()
     cursor = executor.execute(
-        "SELECT d.id, d.name  FROM devices d  INNER JOIN user_devices ud ON d.id = ud.device_id INNER JOIN users u  ON ud.user_id = u.id  WHERE u.id = ?", (userid, ))
+        "SELECT d.id, d.name FROM devices d  INNER JOIN user_devices ud ON d.id = ud.device_id INNER JOIN users u  ON ud.user_id = u.id  WHERE u.id = ?", (userid, ))
     results = cursor.fetchall()
     executor.done()
 
@@ -107,7 +107,22 @@ def find_all_devices_for_user(userid):
 def find_device_by_id(id):
     executor = db.use_executor()
     cursor = executor.execute(
-        "SELECT id, name FROM devices  WHERE id = ?  LIMIT 1", (id, ))
+        "SELECT id, name FROM devices WHERE id = ?  LIMIT 1", (id, ))
+    result = cursor.fetchone()
+    executor.done()
+
+    if result is None:
+        return None
+    return {
+        "id": result[0],
+        "name": result[1]
+    }
+
+
+def find_device_by_credentials(device_name, device_password):
+    executor = db.use_executor()
+    cursor = executor.execute(
+        "SELECT id, name FROM devices WHERE name = ? AND password = ? LIMIT 1", (device_name, device_password))
     result = cursor.fetchone()
     executor.done()
 
@@ -125,6 +140,7 @@ def update_device_settings(
     # Populate placeholders
     placeholders = []
     placeholder_values = []
+    updated_settings = 0
     for setting_name, setting_value in settings.items():
         setting = ds.get(setting_name)
         if setting is None:
@@ -134,7 +150,8 @@ def update_device_settings(
         placeholder_values.append(id)
         placeholder_values.append(setting_name)
         placeholder_values.append(serialized_value)
-    if placeholders is None:
+        updated_settings += 1
+    if placeholders is None or updated_settings == 0:
         return False
     placeholder = ",".join(placeholders)
 

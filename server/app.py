@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 from os.path import join, dirname, realpath
 
 UPLOAD_FOLDER = join(dirname(realpath(__file__)), 'uploads/')
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -112,11 +112,17 @@ def update_device_settings(deviceId):
         return {"ok": False, "message": "Internal server error"}, 500
 
 
-@app.route("/user/<userId>/devices/<deviceId>", methods=["POST"])
-def create_user_device(userId, deviceId):
+@app.route("/users/<userId>/devices", methods=["POST"])
+def create_user_device(userId):
+    payload = request.json
+    name = payload.get("name")
+    password = payload.get("password")
     try:
-        device = repository.add_device_to_user(userId, deviceId)
-        return {"ok": True, "data": device}, 201
+        device = repository.find_device_by_credentials(name, password)
+        if device is None:
+            return {"ok": False, "message": "Invalid device credentials"}, 404
+        userDevice = repository.add_device_to_user(userId, device["id"])
+        return {"ok": True, "data": userDevice}, 201
     except IntegrityError:
         print(traceback.format_exc())
         return {"ok": False, "message": "Device already added to user, or device or user does not exist"}, 422
@@ -125,12 +131,19 @@ def create_user_device(userId, deviceId):
         return {"ok": False, "message": "Internal server error"}, 500
 
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+@app.route("/users/<userId>/devices", methods=["GET"])
+def find_user_devices(userId):
+    try:
+        device = repository.find_all_devices_for_user(userId)
+        return {"ok": True, "data": device}, 200
+    except Exception:
+        print(traceback.format_exc())
+        return {"ok": False, "message": "Internal server error"}, 500
 
 
-def upload_file(file):
-    filename = secure_filename(str(uuid.uuid4()) + file.filename)
+def upload_file(file, filename=None):
+    if filename is None:
+        filename = secure_filename(file.filename)
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     return filename
 
@@ -142,11 +155,17 @@ def create_device_capture(deviceId):
         return {"ok": False, "message": "No file part"}, 400
 
     file = request.files.get("file")
-    if file.filename == '':
+    filename = file.filename
+    if filename == '':
         return {"ok": False, "message": "No file selected"}, 400
-    if not (file and allowed_file(file.filename)):
+    if '.' not in filename:
+        return {"ok": False, "message": "No file extension"}, 400
+
+    file_extension = filename.rsplit('.', 1)[1]
+
+    if file_extension.lower() not in ALLOWED_IMAGE_EXTENSIONS:
         return {"ok": False, "message": "File type not allowed"}, 400
-    uploaded_filename = upload_file(file)
+    uploaded_filename = upload_file(file, secure_filename(str(uuid.uuid4()) + "." + file_extension))
 
     try:
         result = repository.add_device_capture(deviceId, uploaded_filename, datetime.timestamp(datetime.now()))
@@ -158,6 +177,15 @@ def create_device_capture(deviceId):
     except Exception:
         print(traceback.format_exc())
         return {"ok": False, "message": "Internal server error"}, 500
+
+
+@app.route("/capture-images/<image_loc>")
+def find_device_capture_image(image_loc):
+    image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_loc)
+    if os.path.isfile(image_path):
+        return send_file(image_path), 200
+    else:
+        return {"ok": False, "message": "Image does not exist"}, 404
 
 
 if __name__ == "__main__":
