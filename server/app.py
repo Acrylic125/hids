@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 from os.path import join, dirname, realpath
 
 UPLOAD_FOLDER = join(dirname(realpath(__file__)), 'uploads/')
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_IMAGE_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -125,12 +125,9 @@ def create_user_device(userId, deviceId):
         return {"ok": False, "message": "Internal server error"}, 500
 
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def upload_file(file):
-    filename = secure_filename(str(uuid.uuid4()) + file.filename)
+def upload_file(file, filename=None):
+    if filename is None:
+        filename = secure_filename(file.filename)
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     return filename
 
@@ -142,11 +139,17 @@ def create_device_capture(deviceId):
         return {"ok": False, "message": "No file part"}, 400
 
     file = request.files.get("file")
-    if file.filename == '':
+    filename = file.filename
+    if filename == '':
         return {"ok": False, "message": "No file selected"}, 400
-    if not (file and allowed_file(file.filename)):
+    if '.' not in filename:
+        return {"ok": False, "message": "No file extension"}, 400
+
+    file_extension = filename.rsplit('.', 1)[1]
+
+    if file_extension.lower() not in ALLOWED_IMAGE_EXTENSIONS:
         return {"ok": False, "message": "File type not allowed"}, 400
-    uploaded_filename = upload_file(file)
+    uploaded_filename = upload_file(file, secure_filename(str(uuid.uuid4()) + "." + file_extension))
 
     try:
         result = repository.add_device_capture(deviceId, uploaded_filename, datetime.timestamp(datetime.now()))
@@ -158,6 +161,15 @@ def create_device_capture(deviceId):
     except Exception:
         print(traceback.format_exc())
         return {"ok": False, "message": "Internal server error"}, 500
+
+
+@app.route("/capture-images/<image_loc>")
+def find_device_capture_image(image_loc):
+    image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_loc)
+    if os.path.isfile(image_path):
+        return send_file(image_path)
+    else:
+        return {"ok": False, "message": "Image does not exist"}, 404
 
 
 if __name__ == "__main__":
