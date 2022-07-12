@@ -1,6 +1,6 @@
 import db
 
-with open('../initialise.sql', 'r') as sql_file:
+with open('initialise.sql', 'r') as sql_file:
     sql_script = sql_file.read()
 
 
