@@ -1,6 +1,22 @@
 import time
 import requests
+import RPi.GPIO as GPIO
 
+GPIO.setmode(GPIO.BCM)
+
+# PINS
+PIR_PIN = 17
+LED_PIN = 24
+BUZZER_PIN = 18
+
+# PIR Sensor setup
+GPIO.setup(PIR_PIN, GPIO.IN)
+GPIO.setup(LED_PIN, GPIO.OUT)
+GPIO.setup(BUZZER_PIN, GPIO.OUT)
+
+print("Starting up Raspberry Pi")
+time.sleep(5)
+print("Ready to go!")
 
 ACTIVATION_ALWAYS = "ALWAYS"
 ACTIVATION_LIGHTS_OFF = "LIGHTS_OFF"
@@ -37,8 +53,43 @@ ACTIVATION_DISABLED = "DISABLED"
 #         self.futures = []
 #
 
+class MotionDetector:
+    def __init__(self, pin):
+        self.activated = True
+        self.pin = pin
+
+    def is_active(self):
+        return self.activated
+
+    def run(self):
+        if GPIO.input(self.pin):
+            if not self.activated:
+                self.activated = True
+        else:
+            if self.activated:
+                self.activated = False
+
+
+class OutputComponent:
+    def __init__(self, pin):
+        self.activated = True
+        self.pin = pin
+
+    def set_activated(self, activated):
+        self.activated = activated
+
+    def is_active(self):
+        return self.activated
+
+    def run(self):
+        if self.activated:
+            GPIO.output(self.pin, 1)
+        else:
+            GPIO.output(self.pin, 0)
+
+
 class Device:
-    def __init__(self, id, name, activation_mode, trigger_duration, cooldown):
+    def __init__(self, id, name, activation_mode, trigger_duration, cooldown, motion_detector, led, buzzer):
         self.id = id
         self.name = name
         self.activation_mode = activation_mode
@@ -46,6 +97,9 @@ class Device:
         self.cooldown = cooldown
         self.last_triggered = 0
         self._active = False
+        self.motion_detector = motion_detector
+        self.led = led
+        self.buzzer = buzzer
 
     def is_active(self):
         return self._active
@@ -59,22 +113,24 @@ class Device:
                 (self.activation_mode == ACTIVATION_LIGHTS_OFF and self.is_light_detected()))
 
     def is_motion_detected(self):
-        return True
+        return self.motion_detector.is_active()
 
     def is_light_detected(self):
         return False
 
     def is_lights_on(self):
-        return False
+        return self.led.is_active()
 
     def is_sirens_on(self):
-        return False
+        return self.buzzer.is_active()
 
     def toggle_lights(self, toggle):
         print('Lights {}', toggle)
+        self.led.set_activated(toggle)
 
     def toggle_sirens(self, toggle):
         print('Sirens {}', toggle)
+        self.buzzer.set_activated(toggle)
 
     def capture_image(self):
         print('Capture image')
@@ -91,27 +147,41 @@ class Device:
         self.toggle_sirens(False)
         self._active = False
 
+    def run(self):
+        self.motion_detector.run()
+        self.led.run()
+        self.buzzer.run()
+
 
 device = {
     "id": "1",
     'name': 'Raspberry Pi',
-    'triggerDuration': 15,
+    'triggerDuration': 5,
     'activationMode': ACTIVATION_ALWAYS,
     'cooldown': 15
 }
 
+motion_detector = MotionDetector(PIR_PIN)
+led_component = OutputComponent(LED_PIN)
+buzzer_component = OutputComponent(BUZZER_PIN)
 
 device = Device(
     id=device['id'],
     name=device['name'],
     activation_mode=device['activationMode'],
     trigger_duration=device['triggerDuration'],
-    cooldown=device['cooldown']
+    cooldown=device['cooldown'],
+    motion_detector=motion_detector,
+    led=led_component,
+    buzzer=buzzer_component
 )
+
 
 while True:
     if device.is_active() and not device.is_within_trigger_time():
+        print("Stopped Triggering")
         device.end_trigger()
     if device.should_trigger():
+        print('Triggering')
         device.trigger()
     time.sleep(0.1)
