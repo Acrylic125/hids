@@ -55,7 +55,7 @@ ACTIVATION_DISABLED = "DISABLED"
 
 class MotionDetector:
     def __init__(self, pin):
-        self.activated = True
+        self.activated = False
         self.pin = pin
 
     def is_active(self):
@@ -72,7 +72,7 @@ class MotionDetector:
 
 class OutputComponent:
     def __init__(self, pin):
-        self.activated = True
+        self.activated = False
         self.pin = pin
 
     def set_activated(self, activated):
@@ -184,4 +184,5 @@ while True:
     if device.should_trigger():
         print('Triggering')
         device.trigger()
+    device.run()
     time.sleep(0.1)
