@@ -2,3 +2,4 @@ server/venv
 hids.db
 .idea
 uploads
+venv
