@@ -177,6 +177,7 @@ class Device:
         return (self.last_triggered + self.trigger_duration) > time.time()
 
     def should_trigger(self):
+        print('Should trigger is_motion_detected: ' + str(self.is_motion_detected()) + ' is_light_detected: ' + str(self.is_light_detected()) + ' is_within_trigger_time: ' + str(self.is_within_trigger_time()) + ' activation_mode: ' + self.activation_mode)
         return self.is_motion_detected() \
                and (self.last_triggered + self.cooldown) < time.time() and \
                (self.activation_mode == ACTIVATION_ALWAYS or (
