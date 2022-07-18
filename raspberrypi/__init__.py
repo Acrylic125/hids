@@ -48,7 +48,7 @@ for j in range(4):
 driver_lcd = I2C_LCD_driver.lcd()
 
 print("Starting up Raspberry Pi")
-time.sleep(0.2)
+time.sleep(5)
 print("Ready to go!")
 
 ACTIVATION_ALWAYS = "ALWAYS"
@@ -221,7 +221,7 @@ class Device:
     def run(self):
         self.motion_detector.run()
         self.led.run()
-        self.buzzer.run()
+        # self.buzzer.run()
         self.ldr.run()
 
 
