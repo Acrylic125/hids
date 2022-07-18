@@ -3,6 +3,7 @@ import requests
 import RPi.GPIO as GPIO
 import spidev
 import I2C_LCD_driver
+import threading
 # import RPIMock as GPIO
 # import spidevMock as spidev
 
@@ -254,8 +255,11 @@ device = Device(
     lcd=lcd_component
 )
 
+# threading.Thread(target=lambda: device.run()).start()
+
 while True:
     device.run()
+    lcd_component.set_text([str(device.is_motion_detected()), str(device.is_light_detected())])
     # print('keypad_component: {}'.format(keypad_component.get_value_from_keypad()))
     if device.is_active() and not device.is_within_trigger_time():
         print("Stopped Triggering")
