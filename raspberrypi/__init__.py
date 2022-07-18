@@ -102,14 +102,14 @@ class KeypadComponent:
 
     def get_value_from_keypad(self):
         values = []
-        for i in range(3):  # loop thru’ all columns
-            GPIO.output(self.col_pins[i], 0)  # pull one column pin low
-            for j in range(4):  # check which row pin becomes low
-                if GPIO.input(self.row_pins[j]) == 0:  # if a key is pressed
-                    values.append(self.keypad_values[j][i])  # add the key to the list
-                    while GPIO.input(self.row_pins[j]) == 0:  # debounce
+        for i in range(3):
+            GPIO.output(self.col_pins[i], 0)
+            for j in range(4):
+                if GPIO.input(self.row_pins[j]) == 0:
+                    values.append(self.keypad_values[j][i])
+                    while GPIO.input(self.row_pins[j]) == 0:
                         pass
-            GPIO.output(self.col_pins[i], 1)  # write back default value of 1
+            GPIO.output(self.col_pins[i], 1)
         return values
 
 
