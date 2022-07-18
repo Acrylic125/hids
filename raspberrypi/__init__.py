@@ -14,10 +14,10 @@ GPIO.setwarnings(False)
 
 # Keypad
 KEYPAD_MATRIX = [
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9],
-    ['*', 0, '#']
+    ['1', '2', '3'],
+    ['4', '5', '6'],
+    ['7', '8', '9'],
+    ['*', '0', '#']
 ]  # layout of keys on keypad
 ROW = [6, 20, 19, 13]  # row pins
 COL = [12, 5, 16]  # column pins
