@@ -74,7 +74,7 @@ class MotionDetector:
         return self.activated
 
     def run(self):
-        if GPIO.input(self.pin):
+        if not GPIO.input(self.pin):
             if not self.activated:
                 self.activated = True
         else:
