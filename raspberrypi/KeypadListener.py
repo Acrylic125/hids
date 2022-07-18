@@ -73,7 +73,6 @@ class OptionsMode:
 
     def run(self):
         option = self.context.get_char()
-        print(option)
         if option == ['1']:
             print("Option 1")
             self.context.set_mode(DeviceCredentialsMode(self.context, lambda device_name, device_password: self.new_device(device_name, device_password)))

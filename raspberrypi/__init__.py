@@ -191,7 +191,8 @@ class Device:
         return self.motion_detector.is_active()
 
     def is_light_detected(self):
-        return self.ldr.get_value() > 1000
+        print("LDR: " + str(self.ldr.get_value()))
+        return self.ldr.get_value() > 300
 
     def is_lights_on(self):
         return self.led.is_active()
@@ -283,3 +284,4 @@ main_thread.start()
 # Join threads
 device_keypad.join()
 main_thread.join()
+
