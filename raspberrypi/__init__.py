@@ -255,7 +255,7 @@ device = Device(
 
 while True:
     device.run()
-    print('keypad_component: {}'.format(keypad_component.get_value_from_keypad()))
+    # print('keypad_component: {}'.format(keypad_component.get_value_from_keypad()))
     if device.is_active() and not device.is_within_trigger_time():
         print("Stopped Triggering")
         device.end_trigger()
