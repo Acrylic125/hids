@@ -259,16 +259,27 @@ device = Device(
 )
 
 
-threading.Thread(target=lambda: run_device_keypad(lcd=lcd_component, keypad=keypad_component)).start()
+def run_main():
+    while True:
+        device.run()
+        # lcd_component.set_text([str(device.is_motion_detected()), str(device.is_light_detected())])
+        # print('keypad_component: {}'.format(keypad_component.get_value_from_keypad()))
+        if device.is_active() and not device.is_within_trigger_time():
+            print("Stopped Triggering")
+            device.end_trigger()
+        if device.should_trigger():
+            print('Triggering')
+            device.trigger()
+        time.sleep(0.1)
 
-while True:
-    device.run()
-    # lcd_component.set_text([str(device.is_motion_detected()), str(device.is_light_detected())])
-    # print('keypad_component: {}'.format(keypad_component.get_value_from_keypad()))
-    if device.is_active() and not device.is_within_trigger_time():
-        print("Stopped Triggering")
-        device.end_trigger()
-    if device.should_trigger():
-        print('Triggering')
-        device.trigger()
-    time.sleep(0.1)
+
+device_keypad = threading.Thread(target=lambda: run_device_keypad(lcd=lcd_component, keypad=keypad_component))
+main_thread = threading.Thread(target=lambda: run_main())
+
+# Start threads
+device_keypad.start()
+main_thread.start()
+
+# Join threads
+device_keypad.join()
+main_thread.join()

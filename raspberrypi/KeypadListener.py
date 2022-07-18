@@ -69,6 +69,7 @@ class OptionsMode:
 
     def connect_device(self, device_name, device_password):
         print("Connect device", device_name, device_password)
+        self.context.reset()
 
     def run(self):
         option = self.context.get_char()
@@ -99,7 +100,9 @@ class KeypadListener:
         self.mode.on_init()
 
     def get_char(self):
-        return self.keypad.get_value_from_keypad()
+        char = self.keypad.get_value_from_keypad()
+        print(char)
+        return char
 
 
 def run_device_keypad(lcd, keypad):
