@@ -7,7 +7,7 @@ import I2C_LCD_driver
 # import spidevMock as spidev
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setWarnings(False)
+GPIO.setwarnings(False)
 
 # Keypad
 KEYPAD_MATRIX = [
