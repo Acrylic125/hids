@@ -4,6 +4,7 @@ import RPi.GPIO as GPIO
 import spidev
 import I2C_LCD_driver
 import threading
+from KeypadListener import run_device_keypad
 
 # import RPIMock as GPIO
 # import spidevMock as spidev
@@ -258,13 +259,7 @@ device = Device(
 )
 
 
-def run_device_renamer():
-    while True:
-        print("Hello 1s")
-        time.sleep(1)
-
-
-threading.Thread(target=lambda: run_device_renamer()).start()
+threading.Thread(target=lambda: run_device_keypad(lcd=lcd_component, keypad=keypad_component)).start()
 
 while True:
     device.run()
