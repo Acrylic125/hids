@@ -229,7 +229,7 @@ device = {
     "id": "1",
     'name': 'Raspberry Pi',
     'triggerDuration': 5,
-    'activationMode': ACTIVATION_LIGHTS_OFF,
+    'activationMode': ACTIVATION_ALWAYS,
     'cooldown': 15
 }
 
