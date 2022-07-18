@@ -74,8 +74,10 @@ class OptionsMode:
     def run(self):
         option = self.context.get_char()
         if option == ['1']:
+            print("Option 1")
             self.context.set_mode(DeviceCredentialsMode(self.context, lambda device_name, device_password: self.new_device(device_name, device_password)))
         elif option == ['2']:
+            print("Option 2")
             self.context.set_mode(DeviceCredentialsMode(self.context, lambda device_name, device_password: self.connect_device(device_name, device_password)))
 
 
@@ -101,7 +103,8 @@ class KeypadListener:
 
     def get_char(self):
         char = self.keypad.get_value_from_keypad()
-        print(char)
+        if len(char) > 0:
+            print(char)
         return char
 
 
