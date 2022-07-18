@@ -4,6 +4,7 @@ import RPi.GPIO as GPIO
 import spidev
 import I2C_LCD_driver
 import threading
+
 # import RPIMock as GPIO
 # import spidevMock as spidev
 
@@ -156,7 +157,8 @@ class DeviceClient:
 
 
 class Device:
-    def __init__(self, id, name, activation_mode, trigger_duration, cooldown, motion_detector, led, buzzer, ldr, keypad, lcd):
+    def __init__(self, id, name, activation_mode, trigger_duration, cooldown, motion_detector, led, buzzer, ldr, keypad,
+                 lcd):
         self.id = id
         self.name = name
         self.activation_mode = activation_mode
@@ -255,7 +257,14 @@ device = Device(
     lcd=lcd_component
 )
 
-# threading.Thread(target=lambda: device.run()).start()
+
+def run_device_renamer():
+    while True:
+        print("Hello 1s")
+        time.sleep(1)
+
+
+threading.Thread(target=lambda: run_device_renamer()).start()
 
 while True:
     device.run()
