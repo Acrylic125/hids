@@ -263,7 +263,7 @@ threading.Thread(target=lambda: run_device_keypad(lcd=lcd_component, keypad=keyp
 
 while True:
     device.run()
-    lcd_component.set_text([str(device.is_motion_detected()), str(device.is_light_detected())])
+    # lcd_component.set_text([str(device.is_motion_detected()), str(device.is_light_detected())])
     # print('keypad_component: {}'.format(keypad_component.get_value_from_keypad()))
     if device.is_active() and not device.is_within_trigger_time():
         print("Stopped Triggering")
