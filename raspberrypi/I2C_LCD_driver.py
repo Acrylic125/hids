@@ -21,8 +21,8 @@ I2CBUS = 1
 # LCD Address
 ADDRESS = 0x3f
 
-# import smbus
-import smbusMock as smbus
+import smbus
+# import smbusMock as smbus
 from time import sleep
 
 
