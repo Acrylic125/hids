@@ -191,8 +191,7 @@ class Device:
         return self.motion_detector.is_active()
 
     def is_light_detected(self):
-        print("LDR: " + str(self.ldr.get_value()))
-        return self.ldr.get_value() > 300
+        return self.ldr.get_value() < 200
 
     def is_lights_on(self):
         return self.led.is_active()
