@@ -126,7 +126,7 @@ class LCDComponent:
         self.lcd.clear()
         self.lcd.backlight(1)
         for i in range(len(texts)):
-            self.lcd.lcd_display_string(texts[i])
+            self.lcd.lcd_display_string(texts[i], i + 1)
 
 
 class OutputComponent:
