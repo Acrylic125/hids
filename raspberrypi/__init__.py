@@ -119,11 +119,11 @@ class LCDComponent:
         self.lcd = lcd
 
     def clear(self):
-        self.lcd.clear()
+        self.lcd.lcd_clear()
         self.lcd.backlight(0)
 
     def set_text(self, texts):
-        self.lcd.clear()
+        self.lcd.lcd_clear()
         self.lcd.backlight(1)
         for i in range(len(texts)):
             self.lcd.lcd_display_string(texts[i], i + 1)
