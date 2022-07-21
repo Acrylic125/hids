@@ -2,9 +2,10 @@ import os
 from sqlite3 import IntegrityError
 from datetime import datetime
 import uuid
-from flask import Flask, render_template, request, send_file, jsonify
+from flask import Flask, render_template, request, send_file, jsonify, Response
 import repository
 import traceback
+import telebot
 from werkzeug.utils import secure_filename
 
 from os.path import join, dirname, realpath
@@ -18,9 +19,30 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 
 # Endpoints
-@app.route("/", methods=["GET"])
+@app.route("/", methods=["GET", "POST"])
 def index():
-    return render_template("dashboard.html")
+    if request.method == 'POST':
+        msg = request.get_json()
+        chat_id,txt = telebot.parse_message(msg)
+        if txt.split()[0] == "/Login" and len(txt.split()) == 3:
+            try:
+                result = repository.login(txt.split()[1], txt.split()[2])
+                if result is None:
+                    telebot.tel_send_message(chat_id,"Login failed, Please try again.")
+                else:
+                    telegram_user = repository.telegram_login(int(result['id']), int(chat_id))
+                    if telegram_user == False:
+                        telebot.tel_send_message(chat_id,"Failed to attach your account with your telegram. Please try again.")
+                    telebot.tel_send_message(chat_id,"Login Successful, You will now be notified when any devices belonging to you has been triggered.")
+            except Exception:
+                print(traceback.format_exc())
+                telebot.tel_send_message(chat_id,"Internal server error")   
+        else:
+            telebot.tel_send_message(chat_id,'from webhook')
+       
+        return Response('ok', status=200)
+    else:
+        return render_template("dashboard.html")
 
 
 @app.route("/devices", methods=["POST"])
@@ -187,5 +209,21 @@ def find_device_capture_image(image_loc):
         return jsonify({"ok": False, "message": "Image does not exist"}), 404
 
 
+@app.route("/login", methods=["POST"])
+def login():
+    payload = request.json
+    name = payload.get("username")
+    password = payload.get("password")
+    try:
+        login = repository.login(name, password)
+        if login is None:
+            return jsonify({"ok": False, "message": "Invalid login credentials"}), 404
+        print(login)
+        return jsonify({"ok": True, "data": login}), 201
+    except Exception:
+        print(traceback.format_exc())
+        return jsonify({"ok": False, "message": "Internal server error"}), 500
+
+        
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")

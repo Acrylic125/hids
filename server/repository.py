@@ -161,3 +161,31 @@ def update_device_settings(
         "INSERT OR REPLACE INTO device_settings (device_id, setting_name, value) VALUES " + placeholder, tuple(placeholder_values))
     executor.done()
     return True
+
+
+def login (username, password):
+    executor = db.use_executor()
+    cursor = executor.execute(
+        "SELECT id FROM users WHERE username = ? AND password = ? LIMIT 1", (username, password))
+    result = cursor.fetchone()
+    executor.done()
+
+    if result is None:
+        return None
+    return {
+        "id": result[0]
+    }
+
+
+def telegram_login ( id, chat_id ):
+    executor = db.use_executor()
+    cursor = executor.execute(
+        "INSERT OR REPLACE INTO telegram_users (user_id, chat_id) VALUES (?,?)", (id, chat_id))
+    executor.done()
+
+    print(cursor)
+
+    if cursor.rowcount < 1:
+        return False
+    else:
+        return True
