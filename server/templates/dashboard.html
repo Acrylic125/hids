@@ -33,11 +33,11 @@
     <link rel="stylesheet" href="/static/styles/layout.css" />
     <script defer>
       const BASE_API_URL = "http://127.0.0.1:5000/";
-      let userId = 1;
+      let userId = localStorage.getItem('user_id');
       const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
       // Communicate with backend.
-      async function getAllDevices(userId = 1) {
+      async function getAllDevices(userId) {
         const { data } = await axios.get(BASE_API_URL + `users/${userId}/devices`);
         if (data === undefined || data === null || !data.ok) {
           return [];
@@ -78,6 +78,15 @@
           cooldown,
           activationMode,
         });
+      }
+
+      async function postUserLogin({ username, password }) {
+        const { data } = await axios.post(BASE_API_URL + `/login`, {
+          username,
+          password,
+        });
+        console.log(data)
+        return data.data !== undefined && data.data !== null ? data.data : {};
       }
 
       // HTML Element creation.
@@ -245,9 +254,69 @@
         });
       }
 
+      function checkLogin() {
+        if (localStorage.getItem('user_id')) {
+          $('#login-btn').remove();
+          $('<button class="btn btn-primary btn-md py-0 px-3 w-100" id="logout-btn" >Log out</button>').insertBefore('#auth-container');
+
+          selectDevice();
+        
+          $('body').on('click', '#logout-btn', function (e) {
+            localStorage.removeItem('user_id')
+            window.location.reload()
+          })
+        }
+      }
+
+      function listenLoginForm() {
+        const formElement = $("#login-form");
+        formElement.submit(async function (event) {
+          event.preventDefault();
+          const username = $("#login-username-input").val();
+          const password = $("#login-password-input").val();
+          try {
+            const id = await postUserLogin({ username, password });
+            if (id === undefined || id === null) {
+              throw new Error("Login Failed");
+            }
+            localStorage.setItem('user_id', id.id)
+            checkLogin();
+
+            $("#login-messages")
+              .empty()
+              .append(
+                createMessageElement({
+                  headerMessage: "Success",
+                  message: "Successfully Logged in !",
+                  classType: "bg-success",
+                })
+              );
+
+              $('#login-modal').modal('toggle');
+              
+          } catch (err) {
+            console.error(err);
+            $("#login-messages")
+              .empty()
+              .append(
+                createMessageElement({
+                  headerMessage: "Error",
+                  message: (err.response && err.response.data && err.response.data.message) || "Unknown error.",
+                  classType: "bg-danger",
+                })
+              );
+          }
+        });
+      }
+
+
+
+
       $(document).ready(function () {
-        selectDevice(undefined);
+        selectDevice();
         listenAddDeviceForm();
+        listenLoginForm();
+        checkLogin();
       });
     </script>
   </head>
@@ -255,6 +324,9 @@
   <body class="p-0 m-0 text-white">
     <div class="w-100 bg-dark row m-0">
       <aside class="bg-darker col-12 col-md-3 col-xl-2 h-screen p-3">
+        <div id="auth-container">
+          <button class="btn btn-primary btn-md py-0 px-3 w-100" id="login-btn" data-toggle="modal" data-target="#login-modal">Login</button>
+        </div>
         <div>
           <h1 class="h5 font-weight-bold mt-5">HIDS</h1>
         </div>
@@ -375,5 +447,42 @@
         </div>
       </div>
     </div>
+    
+        <!-- Login Modal -->
+        <div class="modal fade" id="login-modal" tabindex="-1" role="dialog" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content bg-dark text-white">
+              <div class="modal-header">
+                <h5 class="modal-title font-weight-bold">Login</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form id="login-form">
+                  <div class="form-group mt-3">
+                    <label for="login-username-input">Username</label>
+                    <input type="text" id="login-username-input" class="form-control" name="userName" placeholder="Username" required />
+                  </div>
+                  <div class="form-group mt-3">
+                    <label for="login-password-input">Password</label>
+                    <input
+                      type="password"
+                      id="login-password-input"
+                      class="form-control"
+                      name="password"
+                      placeholder="Password"
+                      required
+                    />
+                  </div>
+                  <div class="mt-5">
+                    <div id="login-messages"></div>
+                    <button type="submit" class="btn btn-primary mt-3">Login</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
   </body>
 </html>

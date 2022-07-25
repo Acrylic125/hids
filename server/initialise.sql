@@ -40,8 +40,19 @@ CREATE TABLE IF NOT EXISTS user_devices (
             FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
     );
 
-INSERT INTO users(username, email, password)
-       VALUES ('u111','u111@gmail.com','p111');
+CREATE TABLE IF NOT EXISTS telegram_users (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            user_id INT NOT NULL,
+            chat_id INT NOT NULL,
+            UNIQUE(user_id, chat_id),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+-- INSERT INTO users(username, email, password)
+--        VALUES ('u111','u111@gmail.com','p111');
+
+-- INSERT INTO devices(name, password)
+--        VALUES ('d1', 'd1');
 
 -- INSERT INTO device_captures(device_id, image_loc, capture_time)
 --     VALUES (1, 'abc.png', '1-1-2022 00:00:00'),
