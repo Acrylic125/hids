@@ -268,7 +268,7 @@ def run_main():
             print("Stopped Triggering" + str(i))
             device.end_trigger()
         if device.should_trigger():
-            i++
+            i = i + 1
             print('Triggering' + str(i))
             device.trigger()
         time.sleep(0.1)
