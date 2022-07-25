@@ -163,7 +163,7 @@ def update_device_settings(
     return True
 
 
-def login (username, password):
+def login(username, password):
     executor = db.use_executor()
     cursor = executor.execute(
         "SELECT id FROM users WHERE username = ? AND password = ? LIMIT 1", (username, password))
@@ -177,7 +177,7 @@ def login (username, password):
     }
 
 
-def telegram_login ( id, chat_id ):
+def telegram_login(id, chat_id):
     executor = db.use_executor()
     cursor = executor.execute(
         "INSERT OR REPLACE INTO telegram_users (user_id, chat_id) VALUES (?,?)", (id, chat_id))
@@ -189,3 +189,14 @@ def telegram_login ( id, chat_id ):
         return False
     else:
         return True
+
+
+def signup(username, email, password):
+    executor = db.use_executor()
+    cursor = executor.execute(
+        "INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, password))
+    executor.done()
+
+    return {
+        "id": cursor.lastrowid, "username": username, "email": email, "password": password
+    }

@@ -224,6 +224,30 @@ def login():
         print(traceback.format_exc())
         return jsonify({"ok": False, "message": "Internal server error"}), 500
 
-        
+
+@app.route("/users", methods=["POST"])
+def sign_up():
+    payload = request.json
+    name = payload.get("username")
+    email = payload.get("email")
+    password = payload.get("password")
+
+    if name is None or type(name) is not str or not (0 <= len(name.strip()) <= 32):
+        return jsonify({"ok": False, "message": "Invalid name"}), 400
+    if email is None or type(email) is not str or not (0 <= len(email.strip()) <= 32):
+        return jsonify({"ok": False, "message": "Invalid name"}), 400
+    if password is None or type(password) is not str or not (0 <= len(password.strip()) <= 65535):
+        return jsonify({"ok": False, "message": "Invalid password"}), 400
+
+    try:
+        user = repository.signup(name, email, password)
+        return jsonify({"ok": True, "data": user}), 201
+    except IntegrityError:
+        return jsonify({"ok": False, "message": "User already exists"}), 422
+    except Exception:
+        print(traceback.format_exc())
+        return jsonify({"ok": False, "message": "Internal server error"}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
