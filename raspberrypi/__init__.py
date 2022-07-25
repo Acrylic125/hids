@@ -178,10 +178,15 @@ class OutputComponent:
 
 class CameraComponent:
 
-    def run(self):
+    def capture(self):
         file_path = "captures/" + str(uuid.uuid4()) + ".jpg"
         print("Running Camera, saving as file name " + file_path)
         run(["fswebcam", file_path])
+
+    def run(self):
+        capture_thread = threading.Thread(target=lambda: self.capture())
+        capture_thread.start()
+        capture_thread.join()
 
 
 class DeviceClient:
