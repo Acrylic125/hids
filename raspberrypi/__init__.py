@@ -282,7 +282,7 @@ def on_connect(device_name, device_password):
     if data is not None and data.get("id") is not None:
         lcd_component.brightness = 1
         device.client = DeviceClient(data.get('id'))
-        print('Connected Device with device id, ' + data.get('id'))
+        print('Connected Device with device id, ' + str(data.get('id')))
         return
     lcd_component.brightness = 0
     print('Failed to Connected Device')
