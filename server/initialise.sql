@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS telegram_users (
 --        VALUES ('u111','u111@gmail.com','p111');
 
 -- INSERT INTO devices(name, password)
---        VALUES ('d1', 'd1');
+--        VALUES ('d2', 'd2');
 
 -- INSERT INTO device_captures(device_id, image_loc, capture_time)
 --     VALUES (1, 'abc.png', '1-1-2022 00:00:00'),

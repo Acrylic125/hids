@@ -33,7 +33,23 @@
     <link rel="stylesheet" href="/static/styles/layout.css" />
     <script defer>
       const BASE_API_URL = "http://127.0.0.1:5000/";
-      let userId = localStorage.getItem('user_id');
+      let userId 
+
+      function checkLogin() {
+        if (localStorage.getItem('user_id')) {
+          $('#login-btn').remove();
+          $('<button class="btn btn-primary btn-md py-0 px-3 w-100" id="logout-btn" >Log out</button>').insertBefore('#auth-container');
+
+          userId = localStorage.getItem('user_id');
+          selectDevice();
+          
+          $('body').on('click', '#logout-btn', function (e) {
+            localStorage.removeItem('user_id')
+            window.location.reload()
+          })
+        }
+      }
+
       const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
       // Communicate with backend.
@@ -157,6 +173,7 @@
 
       // Selecting and deselecting devices and captures.
       async function selectDevice(deviceId) {
+        console.log(userId)
         const devices = await getAllDevices(userId);
         showDevicesSidear(devices, deviceId);
 
@@ -254,19 +271,7 @@
         });
       }
 
-      function checkLogin() {
-        if (localStorage.getItem('user_id')) {
-          $('#login-btn').remove();
-          $('<button class="btn btn-primary btn-md py-0 px-3 w-100" id="logout-btn" >Log out</button>').insertBefore('#auth-container');
 
-          selectDevice();
-        
-          $('body').on('click', '#logout-btn', function (e) {
-            localStorage.removeItem('user_id')
-            window.location.reload()
-          })
-        }
-      }
 
       function listenLoginForm() {
         const formElement = $("#login-form");
@@ -319,6 +324,8 @@
         checkLogin();
       });
     </script>
+
+
   </head>
 
   <body class="p-0 m-0 text-white">
