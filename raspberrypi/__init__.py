@@ -77,7 +77,7 @@ class MotionDetector:
         return self.activated
 
     def run(self):
-        if GPIO.input(self.pin):
+        if GPIO.input(self.pin) == 0:
             if not self.activated:
                 self.activated = True
         else:
@@ -232,7 +232,7 @@ class Device:
 device = {
     "id": "1",
     'name': 'Raspberry Pi',
-    'triggerDuration': 5,
+    'triggerDuration': 3,
     'activationMode': ACTIVATION_ALWAYS,
     'cooldown': 5
 }
