@@ -305,7 +305,7 @@ def on_new_device(device_name, device_password):
     if data is not None:
         lcd_component.brightness = 1
         device.client = DeviceClient(data.get('id'))
-        print('Created Device with device id, ' + data.get('id'))
+        print('Created Device with device id, ' + str(data.get('id')))
         return
     lcd_component.brightness = 0
     print('Failed to Create Device')
