@@ -5,6 +5,8 @@ import spidev
 import I2C_LCD_driver
 import threading
 from KeypadListener import run_device_keypad
+import subprocess
+import uuid
 
 # import RPIMock as GPIO
 # import spidevMock as spidev
@@ -151,6 +153,14 @@ class OutputComponent:
             GPIO.output(self.pin, 0)
 
 
+class CameraComponent:
+
+    def run(self):
+        file_path = "captures/" + str(uuid.uuid4()) + ".jpg"
+        print("Running Camera, saving as file name " + file_path)
+        subprocess.run(["fswebcam", file_path])
+
+
 class DeviceClient:
     def __init__(self, device_id):
         self.device_id = device_id
@@ -162,7 +172,7 @@ class DeviceClient:
 
 class Device:
     def __init__(self, id, name, activation_mode, trigger_duration, cooldown, motion_detector, led, buzzer, ldr, keypad,
-                 lcd):
+                 lcd, camera):
         self.id = id
         self.name = name
         self.activation_mode = activation_mode
@@ -176,6 +186,7 @@ class Device:
         self.ldr = ldr
         self.keypad = keypad
         self.lcd = lcd
+        self.camera = camera
         self.client = None
 
     def is_active(self):
@@ -213,6 +224,7 @@ class Device:
 
     def capture_image(self):
         print('Capture image')
+        self.camera.run()
 
     def trigger(self):
         self.last_triggered = time.time()
@@ -248,6 +260,7 @@ buzzer_component = OutputComponent(BUZZER_PIN)
 ldr_component = SPIComponent(LDR_CHANNEL)
 keypad_component = KeypadComponent(COL, ROW, KEYPAD_MATRIX)
 lcd_component = LCDComponent(driver_lcd)
+camera_component = CameraComponent()
 
 device = Device(
     id=device['id'],
@@ -260,7 +273,8 @@ device = Device(
     buzzer=buzzer_component,
     ldr=ldr_component,
     keypad=keypad_component,
-    lcd=lcd_component
+    lcd=lcd_component,
+    camera=camera_component
 )
 
 base_url = "http://127.0.0.1:5000/"
