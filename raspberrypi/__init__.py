@@ -70,6 +70,29 @@ def readadc(adcnum):
     return data
 
 
+def run(*popenargs, **kwargs):
+    input = kwargs.pop("input", None)
+    check = kwargs.pop("handle", False)
+
+    if input is not None:
+        if 'stdin' in kwargs:
+            raise ValueError('stdin and input arguments may not both be used.')
+        kwargs['stdin'] = subprocess.PIPE
+
+    process = subprocess.Popen(*popenargs, **kwargs)
+    try:
+        stdout, stderr = process.communicate(input)
+    except:
+        process.kill()
+        process.wait()
+        raise
+    retcode = process.poll()
+    if check and retcode:
+        raise subprocess.CalledProcessError(
+            retcode, process.args, output=stdout, stderr=stderr)
+    return retcode, stdout, stderr
+
+
 class MotionDetector:
     def __init__(self, pin):
         self.activated = False
@@ -158,7 +181,7 @@ class CameraComponent:
     def run(self):
         file_path = "captures/" + str(uuid.uuid4()) + ".jpg"
         print("Running Camera, saving as file name " + file_path)
-        subprocess.run(["fswebcam", file_path])
+        run(["fswebcam", file_path])
 
 
 class DeviceClient:
