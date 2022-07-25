@@ -41,11 +41,16 @@ class DeviceCredentialsMode:
 
     def on_device_password_entered(self, device_password):
         self.device_password = device_password
+        if self.current_input is not None:
+            self.current_input.on_close()
         self.on_complete(self.device_name, self.device_password)
 
     def on_device_name_entered(self, device_name):
         self.device_name = device_name
+        if self.current_input is not None:
+            self.current_input.on_close()
         self.current_input = TextInput(self.context, "Device password:", self.on_device_password_entered)
+        self.current_input.on_init()
 
     def on_init(self):
         pass
