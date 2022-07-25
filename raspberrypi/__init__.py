@@ -232,7 +232,7 @@ class Device:
 device = {
     "id": "1",
     'name': 'Raspberry Pi',
-    'triggerDuration': 3,
+    'triggerDuration': 1,
     'activationMode': ACTIVATION_ALWAYS,
     'cooldown': 5
 }

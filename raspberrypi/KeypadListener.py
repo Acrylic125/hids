@@ -8,23 +8,27 @@ class TextInput:
         self.on_enter = on_enter
         self.collector = []
 
+    def _out(self):
+        self.context.lcd.set_text([self.header + " (* del, # enter):", ''.join(self.collector)])
+
     def on_init(self):
-        pass
+        self._out()
 
     def on_close(self):
         pass
 
     def run(self):
-        self.context.lcd.set_text([self.header + " (* del, # enter):", ''.join(self.collector)])
         chars = self.context.get_char()
         for char in chars:
             if char == '*':
                 self.collector.pop()
+                self._out()
             elif char == '#':
                 if self.on_enter is not None:
                     self.on_enter(''.join(self.collector))
             else:
                 self.collector.append(char)
+                self._out()
 
 
 class DeviceCredentialsMode:
