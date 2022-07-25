@@ -184,9 +184,7 @@ class CameraComponent:
         run(["fswebcam", file_path])
 
     def run(self):
-        capture_thread = threading.Thread(target=lambda: self.capture())
-        capture_thread.start()
-        capture_thread.join()
+        self.capture()
 
 
 class DeviceClient:
@@ -255,10 +253,10 @@ class Device:
         self.camera.run()
 
     def trigger(self):
-        self.last_triggered = time.time()
         self.toggle_lights(True)
         self.toggle_sirens(True)
         self.capture_image()
+        self.last_triggered = time.time()
         self._active = True
 
     def end_trigger(self):
