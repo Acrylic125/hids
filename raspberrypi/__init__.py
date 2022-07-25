@@ -254,10 +254,11 @@ class Device:
         self.toggle_lights(True)
         self.toggle_sirens(True)
 
-        capture_image = self.camera.capture_image()
+        capture_image = self.camera.capture()
 
         capture_file = {'file': open(capture_image, 'rb')}
         response = requests.post(base_url + "devices/1/captures", files=capture_file)
+        print(response.json())
 
         self.last_triggered = time.time()
         self._active = True
