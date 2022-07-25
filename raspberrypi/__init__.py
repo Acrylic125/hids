@@ -127,6 +127,7 @@ class LCDComponent:
 
     def set_text(self, texts):
         self.lcd.lcd_clear()
+        print("Brightness: " + str(self.brightness))
         self.lcd.backlight(self.brightness)
         for i in range(len(texts)):
             self.lcd.lcd_display_string(texts[i], i + 1)
