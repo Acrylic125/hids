@@ -225,7 +225,7 @@ class Device:
     def run(self):
         self.motion_detector.run()
         self.led.run()
-        # self.buzzer.run()
+        self.buzzer.run()
         self.ldr.run()
 
 
