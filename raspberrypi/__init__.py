@@ -119,6 +119,7 @@ class KeypadComponent:
 class LCDComponent:
     def __init__(self, lcd):
         self.lcd = lcd
+        self.brightness = 0
 
     def clear(self):
         self.lcd.lcd_clear()
@@ -126,7 +127,7 @@ class LCDComponent:
 
     def set_text(self, texts):
         self.lcd.lcd_clear()
-        self.lcd.backlight(1)
+        self.lcd.backlight(self.brightness)
         for i in range(len(texts)):
             self.lcd.lcd_display_string(texts[i], i + 1)
 
@@ -150,11 +151,13 @@ class OutputComponent:
 
 
 class DeviceClient:
-    def __init__(self, url):
-        self.url = url
+    def __init__(self, device_name, device_password):
+        self.device_name = device_name
+        self.device_password = device_password
 
     def send_data(self, data):
-        requests.post(self.url, json=data)
+        # requests.post(self.base_url, json=data)
+        pass
 
 
 class Device:
@@ -173,6 +176,7 @@ class Device:
         self.ldr = ldr
         self.keypad = keypad
         self.lcd = lcd
+        self.client = None
 
     def is_active(self):
         return self._active
@@ -258,6 +262,40 @@ device = Device(
     lcd=lcd_component
 )
 
+base_url = "http://127.0.0.1:5000/"
+
+
+def on_connect(device_name, device_password):
+    data = {
+        'name': device_name,
+        'password': device_password
+    }
+    response = requests.post(base_url + 'devices/auth', json=data)
+    device.client = None
+    payload = response.json()
+    isOk = payload.get('ok')
+    if not isOk:
+        lcd_component.brightness = 0
+        print('Error: ' + payload.get('message'))
+        return
+    data = payload.get('data')
+    if data is not None and data.get("authenticated") is True:
+        lcd_component.brightness = 1
+        device.client = DeviceClient(data.get('name'), data.get('password'))
+        print('Authenticated')
+        return
+    lcd_component.brightness = 0
+    print('Failed to Authenticate')
+
+
+def on_new_device(device_name, device_password):
+    data = {
+        'device_name': device_name,
+        'device_password': device_password
+    }
+    requests.post(base_url + 'login', json=data)
+
+
 def run_main():
     call = 0
     while True:
@@ -274,7 +312,9 @@ def run_main():
         time.sleep(0.1)
 
 
-device_keypad = threading.Thread(target=lambda: run_device_keypad(lcd=lcd_component, keypad=keypad_component))
+device_keypad = threading.Thread(
+    target=lambda: run_device_keypad(lcd=lcd_component, keypad=keypad_component, on_connect=on_connect, on_new_device=on_new_device)
+)
 main_thread = threading.Thread(target=lambda: run_main())
 
 # Start threads

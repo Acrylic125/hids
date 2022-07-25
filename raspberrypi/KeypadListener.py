@@ -80,10 +80,14 @@ class OptionsMode:
 
     def new_device(self, device_name, device_password):
         print("New device", device_name, device_password)
+        if self.context.on_new_device:
+            self.context.on_new_device(device_name, device_password)
         self.context.reset()
 
     def connect_device(self, device_name, device_password):
         print("Connect device", device_name, device_password)
+        if self.context.on_connect:
+            self.context.on_connect(device_name, device_password)
         self.context.reset()
 
     def run(self):
@@ -98,9 +102,11 @@ class OptionsMode:
 
 class KeypadListener:
 
-    def __init__(self, lcd, keypad):
+    def __init__(self, lcd, keypad, on_connect, on_new_device):
         self.lcd = lcd
         self.keypad = keypad
+        self.on_connect = on_connect
+        self.on_new_device = on_new_device
         self.mode = OptionsMode(self)
         self.mode.on_init()
 
@@ -121,8 +127,8 @@ class KeypadListener:
         return char
 
 
-def run_device_keypad(lcd, keypad):
-    renamer = KeypadListener(lcd=lcd, keypad=keypad)
+def run_device_keypad(lcd, keypad, on_connect, on_new_device):
+    renamer = KeypadListener(lcd=lcd, keypad=keypad, on_connect=on_connect, on_new_device=on_new_device)
     while True:
         renamer.run()
         time.sleep(0.1)

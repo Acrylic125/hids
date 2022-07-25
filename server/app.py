@@ -66,6 +66,27 @@ def create_device():
         return jsonify({"ok": False, "message": "Internal server error"}), 500
 
 
+@app.route("/devices/auth", methods=["POST"])
+def authenticate_device():
+    payload = request.json
+    name = payload.get("name")
+    password = payload.get("password")
+
+    if name is None or type(name) is not str or not (0 <= len(name.strip()) <= 32):
+        return jsonify({"ok": False, "message": "Invalid name"}), 400
+    if password is None or type(password) is not str or not (0 <= len(password.strip()) <= 65535):
+        return jsonify({"ok": False, "message": "Invalid password"}), 400
+
+    try:
+        authenticated = repository.authenticate_device(name, password)
+        return jsonify({"ok": True, "data": {
+            "authenticated": authenticated
+        }}), 200
+    except Exception:
+        print(traceback.format_exc())
+        return jsonify({"ok": False, "message": "Internal server error"}), 500
+
+
 @app.route("/devices", methods=["GET"])
 def find_all_devices():
     try:

@@ -15,6 +15,20 @@ def create_device(
     }
 
 
+def authenticate_device(
+        name=None, password=None
+):
+    executor = db.use_executor()
+    cursor = executor.execute(
+        "SELECT id FROM devices WHERE name = ? AND password = ? LIMIT 1", (name, password))
+    result = cursor.fetchone()
+    executor.done()
+
+    if result is None:
+        return False
+    return True
+
+
 def find_device_settings(id):
     executor = db.use_executor()
     cursor = executor.execute(
