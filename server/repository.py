@@ -1,6 +1,6 @@
 import db
 from device_settings import settings as ds
-
+import telebot
 
 def create_device(
         name=None, password=None
@@ -189,3 +189,17 @@ def telegram_login ( id, chat_id ):
         return False
     else:
         return True
+
+def contact_telegram_users ( device_id ):
+    executor = db.use_executor()
+    cursor = executor.execute(
+        "SELECT chat_id FROM telegram_users INNER JOIN devices WHERE devices.id = ?", (device_id))
+    result = cursor.fetchall()
+    executor.done()
+
+    if result is None:
+        return None
+    for telegram_chat_ids in result:
+        telebot.tel_send_message(telegram_chat_ids[0],"ALERT!!! \n Home Intruder Detection System <insert device name> has been activated ! ")
+    return True
+
