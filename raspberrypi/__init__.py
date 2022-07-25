@@ -151,9 +151,8 @@ class OutputComponent:
 
 
 class DeviceClient:
-    def __init__(self, device_name, device_password):
-        self.device_name = device_name
-        self.device_password = device_password
+    def __init__(self, device_id):
+        self.device_id = device_id
 
     def send_data(self, data):
         # requests.post(self.base_url, json=data)
@@ -227,10 +226,11 @@ class Device:
         self._active = False
 
     def run(self):
-        self.motion_detector.run()
-        self.led.run()
-        self.buzzer.run()
-        self.ldr.run()
+        if self.client is not None:
+            self.motion_detector.run()
+            self.led.run()
+            self.buzzer.run()
+            self.ldr.run()
 
 
 device = {
@@ -271,7 +271,6 @@ def on_connect(device_name, device_password):
         'password': device_password
     }
     response = requests.post(base_url + 'devices/auth', json=data)
-    print(response.json())
     device.client = None
     payload = response.json()
     isOk = payload.get('ok')
@@ -282,19 +281,34 @@ def on_connect(device_name, device_password):
     data = payload.get('data')
     if data is not None and data.get("authenticated") is True:
         lcd_component.brightness = 1
-        device.client = DeviceClient(data.get('name'), data.get('password'))
-        print('Authenticated')
+        device.client = DeviceClient(data.get('id'))
+        print('Created Device with device id, ' + data.get('id'))
         return
     lcd_component.brightness = 0
-    print('Failed to Authenticate')
+    print('Failed to Create Device')
 
 
 def on_new_device(device_name, device_password):
     data = {
-        'device_name': device_name,
-        'device_password': device_password
+        'name': device_name,
+        'password': device_password
     }
-    requests.post(base_url + 'login', json=data)
+    response = requests.post(base_url + 'devices', json=data)
+    device.client = None
+    payload = response.json()
+    isOk = payload.get('ok')
+    if not isOk:
+        lcd_component.brightness = 0
+        print('Error: ' + payload.get('message'))
+        return
+    data = payload.get('data')
+    if data is not None:
+        lcd_component.brightness = 1
+        device.client = DeviceClient(data.get('id'))
+        print('Created Device with device id, ' + data.get('id'))
+        return
+    lcd_component.brightness = 0
+    print('Failed to Create Device')
 
 
 def run_main():
