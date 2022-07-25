@@ -4,6 +4,8 @@ import RPi.GPIO as GPIO
 import spidev
 import I2C_LCD_driver
 import threading
+from KeypadListener import run_device_keypad
+
 # import RPIMock as GPIO
 # import spidevMock as spidev
 
@@ -12,10 +14,10 @@ GPIO.setwarnings(False)
 
 # Keypad
 KEYPAD_MATRIX = [
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9],
-    ['*', 0, '#']
+    ['1', '2', '3'],
+    ['4', '5', '6'],
+    ['7', '8', '9'],
+    ['*', '0', '#']
 ]  # layout of keys on keypad
 ROW = [6, 20, 19, 13]  # row pins
 COL = [12, 5, 16]  # column pins
@@ -156,7 +158,8 @@ class DeviceClient:
 
 
 class Device:
-    def __init__(self, id, name, activation_mode, trigger_duration, cooldown, motion_detector, led, buzzer, ldr, keypad, lcd):
+    def __init__(self, id, name, activation_mode, trigger_duration, cooldown, motion_detector, led, buzzer, ldr, keypad,
+                 lcd):
         self.id = id
         self.name = name
         self.activation_mode = activation_mode
@@ -188,7 +191,7 @@ class Device:
         return self.motion_detector.is_active()
 
     def is_light_detected(self):
-        return self.ldr.get_value() > 1000
+        return self.ldr.get_value() < 200
 
     def is_lights_on(self):
         return self.led.is_active()
@@ -230,7 +233,7 @@ device = {
     "id": "1",
     'name': 'Raspberry Pi',
     'triggerDuration': 5,
-    'activationMode': ACTIVATION_ALWAYS,
+    'activationMode': ACTIVATION_LIGHTS_OFF,
     'cooldown': 15
 }
 
@@ -255,16 +258,29 @@ device = Device(
     lcd=lcd_component
 )
 
-# threading.Thread(target=lambda: device.run()).start()
 
-while True:
-    device.run()
-    lcd_component.set_text([str(device.is_motion_detected()), str(device.is_light_detected())])
-    # print('keypad_component: {}'.format(keypad_component.get_value_from_keypad()))
-    if device.is_active() and not device.is_within_trigger_time():
-        print("Stopped Triggering")
-        device.end_trigger()
-    if device.should_trigger():
-        print('Triggering')
-        device.trigger()
-    time.sleep(0.1)
+def run_main():
+    while True:
+        device.run()
+        # lcd_component.set_text([str(device.is_motion_detected()), str(device.is_light_detected())])
+        # print('keypad_component: {}'.format(keypad_component.get_value_from_keypad()))
+        if device.is_active() and not device.is_within_trigger_time():
+            print("Stopped Triggering")
+            device.end_trigger()
+        if device.should_trigger():
+            print('Triggering')
+            device.trigger()
+        time.sleep(0.1)
+
+
+device_keypad = threading.Thread(target=lambda: run_device_keypad(lcd=lcd_component, keypad=keypad_component))
+main_thread = threading.Thread(target=lambda: run_main())
+
+# Start threads
+device_keypad.start()
+main_thread.start()
+
+# Join threads
+device_keypad.join()
+main_thread.join()
+
