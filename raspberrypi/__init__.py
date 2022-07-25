@@ -233,8 +233,8 @@ device = {
     "id": "1",
     'name': 'Raspberry Pi',
     'triggerDuration': 5,
-    'activationMode': ACTIVATION_LIGHTS_OFF,
-    'cooldown': 15
+    'activationMode': ACTIVATION_ALWAYS,
+    'cooldown': 5
 }
 
 motion_detector = MotionDetector(PIR_PIN)
@@ -258,17 +258,18 @@ device = Device(
     lcd=lcd_component
 )
 
-
+i = 0
 def run_main():
     while True:
         device.run()
         # lcd_component.set_text([str(device.is_motion_detected()), str(device.is_light_detected())])
         # print('keypad_component: {}'.format(keypad_component.get_value_from_keypad()))
         if device.is_active() and not device.is_within_trigger_time():
-            print("Stopped Triggering")
+            print("Stopped Triggering" + str(i))
             device.end_trigger()
         if device.should_trigger():
-            print('Triggering')
+            i++
+            print('Triggering' + str(i))
             device.trigger()
         time.sleep(0.1)
 
