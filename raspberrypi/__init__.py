@@ -271,7 +271,7 @@ def on_connect(device_name, device_password):
         'password': device_password
     }
     response = requests.post(base_url + 'devices/auth', json=data)
-    print(response)
+    print(response.json())
     device.client = None
     payload = response.json()
     isOk = payload.get('ok')
