@@ -21,8 +21,9 @@ class TextInput:
         chars = self.context.get_char()
         for char in chars:
             if char == '*':
-                self.collector.pop()
-                self._out()
+                if len(self.collector) > 0:
+                    self.collector.pop()
+                    self._out()
             elif char == '#':
                 if self.on_enter is not None:
                     self.on_enter(''.join(self.collector))
@@ -39,18 +40,23 @@ class DeviceCredentialsMode:
         self.device_password = None
         self.current_input = TextInput(self.context, "Device name:", lambda device_name: self.on_device_name_entered(device_name))
 
-    def on_device_password_entered(self, device_password):
-        self.device_password = device_password
+    def _switch_input(self, text_input):
         if self.current_input is not None:
             self.current_input.on_close()
+        self.current_input = text_input
+        if text_input is not None:
+            text_input.on_init()
+
+    def on_device_password_entered(self, device_password):
+        self.device_password = device_password
+        self._switch_input(None)
         self.on_complete(self.device_name, self.device_password)
 
     def on_device_name_entered(self, device_name):
         self.device_name = device_name
         if self.current_input is not None:
             self.current_input.on_close()
-        self.current_input = TextInput(self.context, "Device password:", self.on_device_password_entered)
-        self.current_input.on_init()
+        self._switch_input(TextInput(self.context, "Device password:", self.on_device_password_entered))
 
     def on_init(self):
         pass
