@@ -258,18 +258,18 @@ device = Device(
     lcd=lcd_component
 )
 
-i = 0
 def run_main():
+    call = 0
     while True:
         device.run()
         # lcd_component.set_text([str(device.is_motion_detected()), str(device.is_light_detected())])
         # print('keypad_component: {}'.format(keypad_component.get_value_from_keypad()))
         if device.is_active() and not device.is_within_trigger_time():
-            print("Stopped Triggering" + str(i))
+            print("Stopped Triggering" + str(call))
             device.end_trigger()
         if device.should_trigger():
-            i = i + 1
-            print('Triggering' + str(i))
+            call = call + 1
+            print('Triggering' + str(call))
             device.trigger()
         time.sleep(0.1)
 
