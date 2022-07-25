@@ -257,7 +257,7 @@ class Device:
         capture_image = self.camera.capture_image()
 
         capture_file = {'file': open(capture_image, 'rb')}
-        requests.post(base_url + "devices/1/captures", files=capture_file)
+        response = requests.post(base_url + "devices/1/captures", files=capture_file)
 
         self.last_triggered = time.time()
         self._active = True
