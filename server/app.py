@@ -79,8 +79,10 @@ def authenticate_device():
 
     try:
         authenticated = repository.authenticate_device(name, password)
+        if authenticated is None:
+            return jsonify({"ok": False, "message": "Invalid credentials"}), 401
         return jsonify({"ok": True, "data": {
-            "authenticated": authenticated
+            "id": authenticated.get("id")
         }}), 200
     except Exception:
         print(traceback.format_exc())

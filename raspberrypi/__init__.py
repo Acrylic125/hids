@@ -279,13 +279,13 @@ def on_connect(device_name, device_password):
         print('Error: ' + payload.get('message'))
         return
     data = payload.get('data')
-    if data is not None and data.get("authenticated") is True:
+    if data is not None and data.get("id") is not None:
         lcd_component.brightness = 1
         device.client = DeviceClient(data.get('id'))
-        print('Created Device with device id, ' + data.get('id'))
+        print('Connected Device with device id, ' + data.get('id'))
         return
     lcd_component.brightness = 0
-    print('Failed to Create Device')
+    print('Failed to Connected Device')
 
 
 def on_new_device(device_name, device_password):

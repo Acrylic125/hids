@@ -25,8 +25,12 @@ def authenticate_device(
     executor.done()
 
     if result is None:
-        return False
-    return True
+        return None
+    return {
+        "id": result[0],
+        "name": name,
+        "password": password
+    }
 
 
 def find_device_settings(id):
