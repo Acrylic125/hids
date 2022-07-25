@@ -182,9 +182,7 @@ class CameraComponent:
         file_path = "captures/" + str(uuid.uuid4()) + ".jpg"
         print("Running Camera, saving as file name " + file_path)
         run(["fswebcam", file_path])
-
-    def run(self):
-        self.capture()
+        return file_path
 
 
 class DeviceClient:
@@ -255,7 +253,12 @@ class Device:
     def trigger(self):
         self.toggle_lights(True)
         self.toggle_sirens(True)
-        self.capture_image()
+
+        capture_image = self.camera.capture_image()
+
+        capture_file = {'file': open(capture_image, 'rb')}
+        requests.post(base_url + "devices/1/captures", files=capture_file)
+
         self.last_triggered = time.time()
         self._active = True
 
@@ -369,7 +372,8 @@ def run_main():
 
 
 device_keypad = threading.Thread(
-    target=lambda: run_device_keypad(lcd=lcd_component, keypad=keypad_component, on_connect=on_connect, on_new_device=on_new_device)
+    target=lambda: run_device_keypad(lcd=lcd_component, keypad=keypad_component, on_connect=on_connect,
+                                     on_new_device=on_new_device)
 )
 main_thread = threading.Thread(target=lambda: run_main())
 
@@ -380,4 +384,3 @@ main_thread.start()
 # Join threads
 device_keypad.join()
 main_thread.join()
-
