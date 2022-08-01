@@ -1,10 +1,12 @@
+import threading
 import time
 import requests
 import RPi.GPIO as GPIO
 import spidev
 import I2C_LCD_driver
-import threading
 from KeypadListener import run_device_keypad
+import subprocess
+import uuid
 
 # import RPIMock as GPIO
 # import spidevMock as spidev
@@ -68,6 +70,29 @@ def readadc(adcnum):
     return data
 
 
+def run(*popenargs, **kwargs):
+    input = kwargs.pop("input", None)
+    check = kwargs.pop("handle", False)
+
+    if input is not None:
+        if 'stdin' in kwargs:
+            raise ValueError('stdin and input arguments may not both be used.')
+        kwargs['stdin'] = subprocess.PIPE
+
+    process = subprocess.Popen(*popenargs, **kwargs)
+    try:
+        stdout, stderr = process.communicate(input)
+    except:
+        process.kill()
+        process.wait()
+        raise
+    retcode = process.poll()
+    if check and retcode:
+        raise subprocess.CalledProcessError(
+            retcode, process.args, output=stdout, stderr=stderr)
+    return retcode, stdout, stderr
+
+
 class MotionDetector:
     def __init__(self, pin):
         self.activated = False
@@ -77,7 +102,7 @@ class MotionDetector:
         return self.activated
 
     def run(self):
-        if GPIO.input(self.pin):
+        if GPIO.input(self.pin) == 0:
             if not self.activated:
                 self.activated = True
         else:
@@ -119,6 +144,7 @@ class KeypadComponent:
 class LCDComponent:
     def __init__(self, lcd):
         self.lcd = lcd
+        self.brightness = 0
 
     def clear(self):
         self.lcd.lcd_clear()
@@ -126,7 +152,8 @@ class LCDComponent:
 
     def set_text(self, texts):
         self.lcd.lcd_clear()
-        self.lcd.backlight(1)
+        print("Brightness: " + str(self.brightness))
+        self.lcd.backlight(self.brightness)
         for i in range(len(texts)):
             self.lcd.lcd_display_string(texts[i], i + 1)
 
@@ -149,17 +176,27 @@ class OutputComponent:
             GPIO.output(self.pin, 0)
 
 
+class CameraComponent:
+
+    def capture(self):
+        file_path = "captures/" + str(uuid.uuid4()) + ".jpg"
+        print("Running Camera, saving as file name " + file_path)
+        run(["fswebcam", file_path])
+        return file_path
+
+
 class DeviceClient:
-    def __init__(self, url):
-        self.url = url
+    def __init__(self, device_id):
+        self.device_id = device_id
 
     def send_data(self, data):
-        requests.post(self.url, json=data)
+        # requests.post(self.base_url, json=data)
+        pass
 
 
 class Device:
     def __init__(self, id, name, activation_mode, trigger_duration, cooldown, motion_detector, led, buzzer, ldr, keypad,
-                 lcd):
+                 lcd, camera):
         self.id = id
         self.name = name
         self.activation_mode = activation_mode
@@ -173,6 +210,8 @@ class Device:
         self.ldr = ldr
         self.keypad = keypad
         self.lcd = lcd
+        self.camera = camera
+        self.client = None
 
     def is_active(self):
         return self._active
@@ -209,12 +248,19 @@ class Device:
 
     def capture_image(self):
         print('Capture image')
+        self.camera.run()
 
     def trigger(self):
-        self.last_triggered = time.time()
         self.toggle_lights(True)
         self.toggle_sirens(True)
-        self.capture_image()
+
+        capture_image = self.camera.capture()
+
+        capture_file = {'file': open(capture_image, 'rb')}
+        response = requests.post(base_url + "devices/1/captures", files=capture_file)
+        print(response.json())
+
+        self.last_triggered = time.time()
         self._active = True
 
     def end_trigger(self):
@@ -223,18 +269,19 @@ class Device:
         self._active = False
 
     def run(self):
-        self.motion_detector.run()
-        self.led.run()
-        # self.buzzer.run()
-        self.ldr.run()
+        if self.client is not None:
+            self.motion_detector.run()
+            self.led.run()
+            self.buzzer.run()
+            self.ldr.run()
 
 
 device = {
     "id": "1",
     'name': 'Raspberry Pi',
-    'triggerDuration': 5,
-    'activationMode': ACTIVATION_LIGHTS_OFF,
-    'cooldown': 15
+    'triggerDuration': 1,
+    'activationMode': ACTIVATION_ALWAYS,
+    'cooldown': 5
 }
 
 motion_detector = MotionDetector(PIR_PIN)
@@ -243,6 +290,7 @@ buzzer_component = OutputComponent(BUZZER_PIN)
 ldr_component = SPIComponent(LDR_CHANNEL)
 keypad_component = KeypadComponent(COL, ROW, KEYPAD_MATRIX)
 lcd_component = LCDComponent(driver_lcd)
+camera_component = CameraComponent()
 
 device = Device(
     id=device['id'],
@@ -255,9 +303,61 @@ device = Device(
     buzzer=buzzer_component,
     ldr=ldr_component,
     keypad=keypad_component,
-    lcd=lcd_component
+    lcd=lcd_component,
+    camera=camera_component
 )
 
+base_url = "http://127.0.0.1:5000/"
+
+
+def on_connect(device_name, device_password):
+    data = {
+        'name': device_name,
+        'password': device_password
+    }
+    response = requests.post(base_url + 'devices/auth', json=data)
+    device.client = None
+    payload = response.json()
+    isOk = payload.get('ok')
+    if not isOk:
+        lcd_component.brightness = 0
+        print('Error: ' + payload.get('message'))
+        return
+    data = payload.get('data')
+    if data is not None and data.get("id") is not None:
+        lcd_component.brightness = 1
+        device.client = DeviceClient(data.get('id'))
+        print('Connected Device with device id, ' + str(data.get('id')))
+        return
+    lcd_component.brightness = 0
+    print('Failed to Connected Device')
+
+
+def on_new_device(device_name, device_password):
+    data = {
+        'name': device_name,
+        'password': device_password
+    }
+    response = requests.post(base_url + 'devices', json=data)
+    device.client = None
+    payload = response.json()
+    isOk = payload.get('ok')
+    if not isOk:
+        lcd_component.brightness = 0
+        print('Error: ' + payload.get('message'))
+        return
+    data = payload.get('data')
+    if data is not None:
+        lcd_component.brightness = 1
+        device.client = DeviceClient(data.get('id'))
+        print('Created Device with device id, ' + str(data.get('id')))
+        return
+    lcd_component.brightness = 0
+    print('Failed to Create Device')
+
+
+def run_main():
+    call = 0
 
 def run_main():
     while True:
@@ -265,6 +365,11 @@ def run_main():
         # lcd_component.set_text([str(device.is_motion_detected()), str(device.is_light_detected())])
         # print('keypad_component: {}'.format(keypad_component.get_value_from_keypad()))
         if device.is_active() and not device.is_within_trigger_time():
+            print("Stopped Triggering" + str(call))
+            device.end_trigger()
+        if device.should_trigger():
+            call = call + 1
+            print('Triggering' + str(call))
             print("Stopped Triggering")
             device.end_trigger()
         if device.should_trigger():
@@ -273,7 +378,10 @@ def run_main():
         time.sleep(0.1)
 
 
-device_keypad = threading.Thread(target=lambda: run_device_keypad(lcd=lcd_component, keypad=keypad_component))
+device_keypad = threading.Thread(
+    target=lambda: run_device_keypad(lcd=lcd_component, keypad=keypad_component, on_connect=on_connect,
+                                     on_new_device=on_new_device)
+)
 main_thread = threading.Thread(target=lambda: run_main())
 
 # Start threads
@@ -283,4 +391,3 @@ main_thread.start()
 # Join threads
 device_keypad.join()
 main_thread.join()
-

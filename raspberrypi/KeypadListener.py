@@ -8,23 +8,28 @@ class TextInput:
         self.on_enter = on_enter
         self.collector = []
 
+    def _out(self):
+        self.context.lcd.set_text([self.header + " (* del, # enter):", ''.join(self.collector)])
+
     def on_init(self):
-        pass
+        self._out()
 
     def on_close(self):
         pass
 
     def run(self):
-        self.context.lcd.set_text([self.header + " (* del, # enter):", ''.join(self.collector)])
         chars = self.context.get_char()
         for char in chars:
             if char == '*':
-                self.collector.pop()
+                if len(self.collector) > 0:
+                    self.collector.pop()
+                    self._out()
             elif char == '#':
                 if self.on_enter is not None:
                     self.on_enter(''.join(self.collector))
             else:
                 self.collector.append(char)
+                self._out()
 
 
 class DeviceCredentialsMode:
@@ -35,12 +40,25 @@ class DeviceCredentialsMode:
         self.device_password = None
         self.current_input = TextInput(self.context, "Device name:", lambda device_name: self.on_device_name_entered(device_name))
 
+    def _switch_input(self, text_input):
+        if self.current_input is not None:
+            self.current_input.on_close()
+        self.current_input = text_input
+        if text_input is not None:
+            text_input.on_init()
+
+    def on_device_password_entered(self, device_password):
+        self.device_password = device_password
+        self._switch_input(None)
     def on_device_password_entered(self, device_password):
         self.device_password = device_password
         self.on_complete(self.device_name, self.device_password)
 
     def on_device_name_entered(self, device_name):
         self.device_name = device_name
+        if self.current_input is not None:
+            self.current_input.on_close()
+        self._switch_input(TextInput(self.context, "Device password:", self.on_device_password_entered))
         self.current_input = TextInput(self.context, "Device password:", self.on_device_password_entered)
 
     def on_init(self):
@@ -65,10 +83,14 @@ class OptionsMode:
 
     def new_device(self, device_name, device_password):
         print("New device", device_name, device_password)
+        if self.context.on_new_device:
+            self.context.on_new_device(device_name, device_password)
         self.context.reset()
 
     def connect_device(self, device_name, device_password):
         print("Connect device", device_name, device_password)
+        if self.context.on_connect:
+            self.context.on_connect(device_name, device_password)
         self.context.reset()
 
     def run(self):
@@ -83,6 +105,11 @@ class OptionsMode:
 
 class KeypadListener:
 
+    def __init__(self, lcd, keypad, on_connect, on_new_device):
+        self.lcd = lcd
+        self.keypad = keypad
+        self.on_connect = on_connect
+        self.on_new_device = on_new_device
     def __init__(self, lcd, keypad):
         self.lcd = lcd
         self.keypad = keypad
