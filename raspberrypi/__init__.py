@@ -254,6 +254,7 @@ class Device:
         self.toggle_lights(True)
         self.toggle_sirens(True)
 
+        # Capture Image
         capture_image = self.camera.capture()
 
         capture_file = {'file': open(capture_image, 'rb')}
@@ -261,6 +262,12 @@ class Device:
         print(response.json())
 
         self.last_triggered = time.time()
+        # Notify Users
+
+        try:
+            response = requests.post(base_url + "/notify-users", json={'deviceid': self.id})
+            print(response.json())
+
         self._active = True
 
     def end_trigger(self):
@@ -327,6 +334,7 @@ def on_connect(device_name, device_password):
         data = payload.get('data')
         if data is not None and data.get("id") is not None:
             lcd_component.brightness = 1
+            device.id = str(data.get('id'))
             device.client = DeviceClient(data.get('id'))
             print('Connected Device with device id, ' + str(data.get('id')))
             return
@@ -353,6 +361,7 @@ def on_new_device(device_name, device_password):
         data = payload.get('data')
         if data is not None:
             lcd_component.brightness = 1
+            device.id = str(data.get('id'))
             device.client = DeviceClient(data.get('id'))
             print('Created Device with device id, ' + str(data.get('id')))
             return
@@ -384,7 +393,7 @@ def run_pull():
             try:
                 data = device.client.pull_settings()
                 if data is not None:
-                    print(data)
+                    print(str(data))
             except Exception as e:
                 print('Error: ' + str(e))
         time.sleep(5)
