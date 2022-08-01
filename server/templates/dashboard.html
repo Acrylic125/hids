@@ -33,21 +33,23 @@
     <link rel="stylesheet" href="/static/styles/layout.css"/>
     <script defer>
         const BASE_API_URL = "http://127.0.0.1:5000/";
-        let userId
+        let userId;
 
         function checkLogin() {
-            if (localStorage.getItem('user_id')) {
+            // localStorage.getItem('user_id')
+            if (userId !== undefined && userId > 0) {
                 $('#login-btn').remove();
                 $('<button class="btn btn-primary btn-md py-0 px-3 w-100 btn-danger" id="logout-btn" >Log out</button>').insertBefore('#logout-btn-container');
 
-                userId = localStorage.getItem('user_id');
+                // userId = localStorage.getItem('user_id');
 
                 $('.logged-in-content').removeClass("logged-in-content")
                 $('#signup-btn').addClass("logged-in-content")
                 selectDevice();
 
                 $('body').on('click', '#logout-btn', function (e) {
-                    localStorage.removeItem('user_id')
+                    // localStorage.removeItem('user_id')
+                    userId = undefined;
                     window.location.reload()
                 })
             }
@@ -263,6 +265,7 @@
                     alert("Please enter valid numbers for trigger duration and cooldown.");
                     return;
                 }
+                console.log(deviceId + " : " + userId)
                 try {
                     await putDeviceSettings(deviceId, {
                         triggerDuration: parseFloat(triggerDuration),
@@ -294,7 +297,8 @@
                     if (id === undefined || id === null) {
                         throw new Error("Login Failed");
                     }
-                    localStorage.setItem('user_id', id.id)
+                    userId = id.id;
+                    // localStorage.setItem('user_id', id.id)
                     checkLogin();
 
                     $("#login-messages")

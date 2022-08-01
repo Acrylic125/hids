@@ -143,8 +143,11 @@ def find_device_captures(deviceId=None):
 @app.route("/devices/<deviceId>/settings", methods=["PUT"])
 def update_device_settings(deviceId):
     payload = request.json
+    print(deviceId)
+    print(payload)
 
     try:
+        print(repository.find_device_settings(deviceId))
         result = repository.update_device_settings(deviceId, payload)
         if result is False:
             return jsonify({"ok": False, "message": "Device failed to update"}), 400
