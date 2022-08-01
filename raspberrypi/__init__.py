@@ -267,6 +267,8 @@ class Device:
         try:
             response = requests.post(base_url + "/notify-users", json={'deviceid': self.id})
             print(response.json())
+        except Exception as e:
+            print(str(e))
 
         self._active = True
 
