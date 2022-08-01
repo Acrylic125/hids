@@ -140,6 +140,22 @@ def find_device_by_id(id):
     }
 
 
+def find_device_by_name(name):
+    executor = db.use_executor()
+    cursor = executor.execute(
+        "SELECT id, name, password FROM devices WHERE name = ?  LIMIT 1", (name,))
+    result = cursor.fetchone()
+    executor.done()
+
+    if result is None:
+        return None
+    return {
+        "id": result[0],
+        "name": result[1],
+        "password": result[2]
+    }
+
+
 def find_device_by_credentials(device_name, device_password):
     executor = db.use_executor()
     cursor = executor.execute(

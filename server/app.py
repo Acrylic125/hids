@@ -21,26 +21,28 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 # Endpoints
 @app.route("/", methods=["GET", "POST"])
 def index():
-    print (request)
+    print(request)
     if request.method == 'POST':
         msg = request.get_json()
-        chat_id,txt = telebot.parse_message(msg)
+        chat_id, txt = telebot.parse_message(msg)
         if txt.split()[0] == "/Login" and len(txt.split()) == 3:
             try:
                 result = repository.login(txt.split()[1], txt.split()[2])
                 if result is None:
-                    telebot.tel_send_message(chat_id,"Login failed, Please try again.")
+                    telebot.tel_send_message(chat_id, "Login failed, Please try again.")
                 else:
                     telegram_user = repository.telegram_login(int(result['id']), int(chat_id))
                     if telegram_user == False:
-                        telebot.tel_send_message(chat_id,"Failed to attach your account with your telegram. Please try again.")
-                    telebot.tel_send_message(chat_id,"Login Successful, You will now be notified when any devices belonging to you has been triggered.")
+                        telebot.tel_send_message(chat_id,
+                                                 "Failed to attach your account with your telegram. Please try again.")
+                    telebot.tel_send_message(chat_id,
+                                             "Login Successful, You will now be notified when any devices belonging to you has been triggered.")
             except Exception:
                 print(traceback.format_exc())
-                telebot.tel_send_message(chat_id,"Internal server error")   
+                telebot.tel_send_message(chat_id, "Internal server error")
         else:
-            telebot.tel_send_message(chat_id,'from webhook')
-       
+            telebot.tel_send_message(chat_id, 'from webhook')
+
         return Response('ok', status=200)
     else:
         return render_template("dashboard.html")
@@ -141,8 +143,11 @@ def find_device_captures(deviceId=None):
 @app.route("/devices/<deviceId>/settings", methods=["PUT"])
 def update_device_settings(deviceId):
     payload = request.json
+    print(deviceId)
+    print(payload)
 
     try:
+        print(repository.find_device_settings(deviceId))
         result = repository.update_device_settings(deviceId, payload)
         if result is False:
             return jsonify({"ok": False, "message": "Device failed to update"}), 400
@@ -163,6 +168,7 @@ def create_user_device(userId):
     name = payload.get("name")
     password = payload.get("password")
     try:
+        print(repository.find_device_by_name(name))
         device = repository.find_device_by_credentials(name, password)
         if device is None:
             return jsonify({"ok": False, "message": "Invalid device credentials"}), 404
@@ -268,19 +274,21 @@ def sign_up():
         return jsonify({"ok": True, "data": user}), 201
     except IntegrityError:
         return jsonify({"ok": False, "message": "User already exists"}), 422
-        
+
+
 @app.route("/notify-users", methods=["POST"])
 def notify_users():
     payload = request.json
     device_id = payload.get("deviceid")
     try:
-        contact_telegram_user  = repository.contact_telegram_users(str(device_id))
+        contact_telegram_user = repository.contact_telegram_users(str(device_id))
         if contact_telegram_user is None:
             return jsonify({"ok": False, "message": "Unable to notify user as user is not logged in to telegram."}), 404
         return jsonify({"ok": True, "data": contact_telegram_user}), 201
     except Exception:
         print(traceback.format_exc())
         return jsonify({"ok": False, "message": "Internal server error"}), 500
+
 
 @app.route("/signup", methods=["POST"])
 def signup():
@@ -295,6 +303,7 @@ def signup():
     except Exception:
         print(traceback.format_exc())
         return jsonify({"ok": False, "message": "Internal server error"}), 500
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
