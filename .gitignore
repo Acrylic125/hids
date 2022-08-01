@@ -1,4 +1,6 @@
 server/venv
 hids.db
 .idea
+uploads
 venv
+server/__pycache__

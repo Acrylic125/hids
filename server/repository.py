@@ -234,6 +234,15 @@ def contact_telegram_users(device_id):
     if result is None:
         return None
     for telegram_chat_ids in result:
-        telebot.tel_send_message(telegram_chat_ids[0],
-                                 "ALERT!!! \n Home Intruder Detection System <insert device name> has been activated ! ")
-    return True
+        telebot.tel_send_message(telegram_chat_ids[0],"ALERT!!! \n Home Intruder Detection System <insert device name> has been activated ! ")
+    return result
+
+def register(username, password):
+    executor = db.use_executor()
+    cursor = executor.execute(
+        "INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+    executor.done()
+
+    return {
+        "id": cursor.lastrowid, "username": username, "password": password
+    }

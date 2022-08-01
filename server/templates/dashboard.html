@@ -38,9 +38,12 @@
       function checkLogin() {
         if (localStorage.getItem('user_id')) {
           $('#login-btn').remove();
-          $('<button class="btn btn-primary btn-md py-0 px-3 w-100" id="logout-btn" >Log out</button>').insertBefore('#auth-container');
+          $('<button class="btn btn-primary btn-md py-0 px-3 w-100 btn-danger" id="logout-btn" >Log out</button>').insertBefore('#logout-btn-container');
 
           userId = localStorage.getItem('user_id');
+
+          $('.logged-in-content').removeClass("logged-in-content")
+          $('#signup-btn').addClass("logged-in-content")
           selectDevice();
           
           $('body').on('click', '#logout-btn', function (e) {
@@ -98,6 +101,15 @@
 
       async function postUserLogin({ username, password }) {
         const { data } = await axios.post(BASE_API_URL + `/login`, {
+          username,
+          password,
+        });
+        console.log(data)
+        return data.data !== undefined && data.data !== null ? data.data : {};
+      }
+
+      async function postUserSignup({ username, password }) {
+        const { data } = await axios.post(BASE_API_URL + `/signup`, {
           username,
           password,
         });
@@ -271,8 +283,6 @@
         });
       }
 
-
-
       function listenLoginForm() {
         const formElement = $("#login-form");
         formElement.submit(async function (event) {
@@ -314,6 +324,44 @@
         });
       }
 
+      function listenSignupForm() {
+        const formElement = $("#signup-form");
+        formElement.submit(async function (event) {
+          event.preventDefault();
+          const username = $("#signup-username-input").val();
+          const password = $("#signup-password-input").val();
+          try {
+            const id = await postUserSignup({ username, password });
+            if (id === undefined || id === null) {
+              throw new Error("signup Failed");
+            }
+            // localStorage.setItem('user_id', id.id)
+            // checkLogin();
+
+            $("#signup-messages")
+              .empty()
+              .append(
+                createMessageElement({
+                  headerMessage: "Success",
+                  message: "Successfully Signed up !",
+                  classType: "bg-success",
+                })
+              );
+              
+          } catch (err) {
+            console.error(err);
+            $("#signup-messages")
+              .empty()
+              .append(
+                createMessageElement({
+                  headerMessage: "Error",
+                  message: (err.response && err.response.data && err.response.data.message) || "Unknown error.",
+                  classType: "bg-danger",
+                })
+              );
+          }
+        });
+      }
 
 
 
@@ -321,6 +369,7 @@
         selectDevice();
         listenAddDeviceForm();
         listenLoginForm();
+        listenSignupForm();
         checkLogin();
       });
     </script>
@@ -330,9 +379,9 @@
 
   <body class="p-0 m-0 text-white">
     <div class="w-100 bg-dark row m-0">
-      <aside class="bg-darker col-12 col-md-3 col-xl-2 h-screen p-3">
-        <div id="auth-container">
-          <button class="btn btn-primary btn-md py-0 px-3 w-100" id="login-btn" data-toggle="modal" data-target="#login-modal">Login</button>
+      <aside class="bg-darker col-12 col-md-3 col-xl-2 h-screen p-3 logged-in-content">
+        <div id="logout-btn-container">
+
         </div>
         <div>
           <h1 class="h5 font-weight-bold mt-5">HIDS</h1>
@@ -344,20 +393,24 @@
         <div class="w-100 bg-dark line my-2"></div>
         <div id="devices" class="h-50 list-group overflow-y-scroll"></div>
       </aside>
-      <main class="bg-dark col-12 col-md-9 col-xl-10 h-screen p-5 overflow-y-scroll">
-        <div id="no-device-selected" class="d-flex justify-content-center align-items-center w-100 h-100">
-          <h2 class="text-white w-25 text-center">No Device Selected. Select a device or Click the “Add” button to add a new device.</h2>
+      <main class="bg-dark col-12 col-md-9 col-xl-10 h-screen p-5 overflow-y-scroll ">
+        <div id="auth-container">
+          <button class="btn btn-success btn-md py-0 px-3 w-100" id="login-btn" data-toggle="modal" data-target="#login-modal">Login</button>
+          <button class="btn btn-primary btn-md py-0 px-3 w-100 mt-3" id="signup-btn" data-toggle="modal" data-target="#signup-modal">Sign-up</button>
         </div>
-        <div id="device" class="w-100 h-100">
-          <h1 id="selected-device-name" class="py-3 font-weight-bold">Device 1</h1>
-          <section id="dashboard-container" class="w-100 mt-3">
-            <header class="d-flex flex-row">
-              <!-- <button class="btn btn-primary">Activate Device</button> -->
-              <button class="btn btn-outline-primary ml-2" data-toggle="modal" data-target="#device-settings-modal">Device Settings</button>
-            </header>
-            <div id="device-captures" class="row p-3 mt-3"></div>
-          </section>
-        </div>
+          <div id="no-device-selected" class="d-flex justify-content-center align-items-center w-100 h-100">
+            <h2 class="text-white w-25 text-center logged-in-content">No Device Selected. Select a device or Click the “Add” button to add a new device.</h2>
+          </div>
+          <div id="device" class="w-100 h-100 logged-in-content">
+            <h1 id="selected-device-name" class="py-3 font-weight-bold">Device 1</h1>
+            <section id="dashboard-container" class="w-100 mt-3">
+              <header class="d-flex flex-row">
+                <!-- <button class="btn btn-primary">Activate Device</button> -->
+                <button class="btn btn-outline-primary ml-2" data-toggle="modal" data-target="#device-settings-modal">Device Settings</button>
+              </header>
+              <div id="device-captures" class="row p-3 mt-3"></div>
+            </section>
+          </div>
       </main>
     </div>
     <!-- Add Device Modal -->
@@ -485,6 +538,43 @@
                   <div class="mt-5">
                     <div id="login-messages"></div>
                     <button type="submit" class="btn btn-primary mt-3">Login</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Signup Modal -->
+        <div class="modal fade" id="signup-modal" tabindex="-1" role="dialog" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content bg-dark text-white">
+              <div class="modal-header">
+                <h5 class="modal-title font-weight-bold">Sign up</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form id="signup-form">
+                  <div class="form-group mt-3">
+                    <label for="signup-username-input">Username</label>
+                    <input type="text" id="signup-username-input" class="form-control" name="userName" placeholder="Username" required />
+                  </div>
+                  <div class="form-group mt-3">
+                    <label for="signup-password-input">Password</label>
+                    <input
+                      type="password"
+                      id="signup-password-input"
+                      class="form-control"
+                      name="password"
+                      placeholder="Password"
+                      required
+                    />
+                  </div>
+                  <div class="mt-5">
+                    <div id="signup-messages"></div>
+                    <button type="submit" class="btn btn-primary mt-3">Register</button>
                   </div>
                 </form>
               </div>

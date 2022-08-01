@@ -34,7 +34,6 @@ def index():
                     telegram_user = repository.telegram_login(int(result['id']), int(chat_id))
                     if telegram_user == False:
                         telebot.tel_send_message(chat_id,"Failed to attach your account with your telegram. Please try again.")
-                    # contact_telegram_user  = repository.contact_telegram_users('1')
                     telebot.tel_send_message(chat_id,"Login Successful, You will now be notified when any devices belonging to you has been triggered.")
             except Exception:
                 print(traceback.format_exc())
@@ -269,10 +268,33 @@ def sign_up():
         return jsonify({"ok": True, "data": user}), 201
     except IntegrityError:
         return jsonify({"ok": False, "message": "User already exists"}), 422
+        
+@app.route("/notify-users", methods=["POST"])
+def notify_users():
+    payload = request.json
+    device_id = payload.get("deviceid")
+    try:
+        contact_telegram_user  = repository.contact_telegram_users(str(device_id))
+        if contact_telegram_user is None:
+            return jsonify({"ok": False, "message": "Unable to notify user as user is not logged in to telegram."}), 404
+        return jsonify({"ok": True, "data": contact_telegram_user}), 201
     except Exception:
         print(traceback.format_exc())
         return jsonify({"ok": False, "message": "Internal server error"}), 500
 
+@app.route("/signup", methods=["POST"])
+def signup():
+    payload = request.json
+    name = payload.get("username")
+    password = payload.get("password")
+    try:
+        register = repository.register(name, password)
+        print(register['id'])
+        if register['id']:
+            return jsonify({"ok": True, "data": register['id']}), 201
+    except Exception:
+        print(traceback.format_exc())
+        return jsonify({"ok": False, "message": "Internal server error"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
