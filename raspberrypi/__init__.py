@@ -393,9 +393,11 @@ def run_pull():
     while True:
         if device.client is not None:
             try:
-                data = device.client.pull_settings()
-                if data is not None:
-                    print(str(data.json()))
+                response = device.client.pull_settings()
+                if response is not None:
+                    payload = response.json()
+                    isOk = payload.get('ok')
+                    print(str(isOk))
             except Exception as e:
                 print('Error: ' + str(e))
         time.sleep(5)
