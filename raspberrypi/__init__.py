@@ -395,7 +395,7 @@ def run_pull():
             try:
                 data = device.client.pull_settings()
                 if data is not None:
-                    print(str(data))
+                    print(str(data.json()))
             except Exception as e:
                 print('Error: ' + str(e))
         time.sleep(5)
