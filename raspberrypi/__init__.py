@@ -152,7 +152,6 @@ class LCDComponent:
 
     def set_text(self, texts):
         self.lcd.lcd_clear()
-        print("Brightness: " + str(self.brightness))
         self.lcd.backlight(self.brightness)
         for i in range(len(texts)):
             self.lcd.lcd_display_string(texts[i], i + 1)
@@ -190,7 +189,7 @@ class DeviceClient:
         self.device_id = device_id
 
     def pull_settings(self):
-        response = requests.get(base_url + '/devices/' + str(self.device_id) + '/settings')
+        response = requests.get(base_url + 'devices/' + str(self.device_id) + '/settings')
         return response
 
 
@@ -265,7 +264,7 @@ class Device:
         # Notify Users
 
         try:
-            response = requests.post(base_url + "/notify-users", json={'deviceid': self.id})
+            response = requests.post(base_url + "notify-users", json={'deviceid': self.id})
             print(str(response.json()))
         except Exception as e:
             print(str(e))
