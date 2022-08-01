@@ -165,6 +165,7 @@ def create_user_device(userId):
     name = payload.get("name")
     password = payload.get("password")
     try:
+        print(repository.find_device_by_name(name))
         device = repository.find_device_by_credentials(name, password)
         if device is None:
             return jsonify({"ok": False, "message": "Invalid device credentials"}), 404
