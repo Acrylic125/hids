@@ -2,6 +2,7 @@ import db
 from device_settings import settings as ds
 import telebot
 
+
 def create_device(
         name=None, password=None
 ):
@@ -15,10 +16,28 @@ def create_device(
     }
 
 
+def authenticate_device(
+        name=None, password=None
+):
+    executor = db.use_executor()
+    cursor = executor.execute(
+        "SELECT id FROM devices WHERE name = ? AND password = ? LIMIT 1", (name, password))
+    result = cursor.fetchone()
+    executor.done()
+
+    if result is None:
+        return None
+    return {
+        "id": result[0],
+        "name": name,
+        "password": password
+    }
+
+
 def find_device_settings(id):
     executor = db.use_executor()
     cursor = executor.execute(
-        "SELECT device_id id, setting_name settingName, value FROM device_settings ds WHERE device_id = ?", (id, ))
+        "SELECT device_id id, setting_name settingName, value FROM device_settings ds WHERE device_id = ?", (id,))
     results = cursor.fetchall()
     executor.done()
 
@@ -36,7 +55,7 @@ def find_device_settings(id):
 def find_device_captures(id):
     executor = db.use_executor()
     cursor = executor.execute(
-        "SELECT id, image_loc, capture_time FROM device_captures WHERE device_id = ?", (id, ))
+        "SELECT id, image_loc, capture_time FROM device_captures WHERE device_id = ?", (id,))
     results = cursor.fetchall()
     executor.done()
 
@@ -53,7 +72,8 @@ def find_device_captures(id):
 def add_device_capture(device_id, image_loc, capture_time):
     executor = db.use_executor()
     cursor = executor.execute(
-        "INSERT INTO device_captures (device_id, image_loc, capture_time)  VALUES (?, ?, ?)", (device_id, image_loc, capture_time))
+        "INSERT INTO device_captures (device_id, image_loc, capture_time)  VALUES (?, ?, ?)",
+        (device_id, image_loc, capture_time))
     executor.done()
 
     return {
@@ -91,7 +111,8 @@ def add_device_to_user(user_id, device_id):
 def find_all_devices_for_user(userid):
     executor = db.use_executor()
     cursor = executor.execute(
-        "SELECT d.id, d.name FROM devices d  INNER JOIN user_devices ud ON d.id = ud.device_id INNER JOIN users u  ON ud.user_id = u.id  WHERE u.id = ?", (userid, ))
+        "SELECT d.id, d.name FROM devices d  INNER JOIN user_devices ud ON d.id = ud.device_id INNER JOIN users u  ON ud.user_id = u.id  WHERE u.id = ?",
+        (userid,))
     results = cursor.fetchall()
     executor.done()
 
@@ -107,7 +128,7 @@ def find_all_devices_for_user(userid):
 def find_device_by_id(id):
     executor = db.use_executor()
     cursor = executor.execute(
-        "SELECT id, name FROM devices WHERE id = ?  LIMIT 1", (id, ))
+        "SELECT id, name FROM devices WHERE id = ?  LIMIT 1", (id,))
     result = cursor.fetchone()
     executor.done()
 
@@ -158,12 +179,13 @@ def update_device_settings(
     # Update settings
     executor = db.use_executor()
     executor.execute(
-        "INSERT OR REPLACE INTO device_settings (device_id, setting_name, value) VALUES " + placeholder, tuple(placeholder_values))
+        "INSERT OR REPLACE INTO device_settings (device_id, setting_name, value) VALUES " + placeholder,
+        tuple(placeholder_values))
     executor.done()
     return True
 
 
-def login (username, password):
+def login(username, password):
     executor = db.use_executor()
     cursor = executor.execute(
         "SELECT id FROM users WHERE username = ? AND password = ? LIMIT 1", (username, password))
@@ -177,7 +199,7 @@ def login (username, password):
     }
 
 
-def telegram_login ( id, chat_id ):
+def telegram_login(id, chat_id):
     executor = db.use_executor()
     cursor = executor.execute(
         "INSERT OR REPLACE INTO telegram_users (user_id, chat_id) VALUES (?,?)", (id, chat_id))
@@ -190,7 +212,19 @@ def telegram_login ( id, chat_id ):
     else:
         return True
 
-def contact_telegram_users ( device_id ):
+
+def signup(username, email, password):
+    executor = db.use_executor()
+    cursor = executor.execute(
+        "INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, password))
+    executor.done()
+
+    return {
+        "id": cursor.lastrowid, "username": username, "email": email, "password": password
+    }
+
+
+def contact_telegram_users(device_id):
     executor = db.use_executor()
     cursor = executor.execute(
         "SELECT chat_id FROM telegram_users INNER JOIN devices WHERE devices.id = ?", (device_id))
@@ -200,6 +234,6 @@ def contact_telegram_users ( device_id ):
     if result is None:
         return None
     for telegram_chat_ids in result:
-        telebot.tel_send_message(telegram_chat_ids[0],"ALERT!!! \n Home Intruder Detection System <insert device name> has been activated ! ")
+        telebot.tel_send_message(telegram_chat_ids[0],
+                                 "ALERT!!! \n Home Intruder Detection System <insert device name> has been activated ! ")
     return True
-
