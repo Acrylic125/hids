@@ -299,7 +299,6 @@ ldr_component = SPIComponent(LDR_CHANNEL)
 keypad_component = KeypadComponent(COL, ROW, KEYPAD_MATRIX)
 lcd_component = LCDComponent(driver_lcd)
 camera_component = CameraComponent()
-
 device = Device(
     id=device['id'],
     name=device['name'],
@@ -337,6 +336,7 @@ def on_connect(device_name, device_password):
             lcd_component.brightness = 1
             device.id = str(data.get('id'))
             device.client = DeviceClient(data.get('id'))
+            pull_settings()
             print('Connected Device with device id, ' + str(data.get('id')))
             return
         lcd_component.brightness = 0
@@ -344,6 +344,7 @@ def on_connect(device_name, device_password):
     except Exception as e:
         lcd_component.brightness = 0
         print('Error: ' + str(e))
+
 
 def on_new_device(device_name, device_password):
     try:
@@ -364,6 +365,7 @@ def on_new_device(device_name, device_password):
             lcd_component.brightness = 1
             device.id = str(data.get('id'))
             device.client = DeviceClient(data.get('id'))
+            pull_settings()
             print('Created Device with device id, ' + str(data.get('id')))
             return
         lcd_component.brightness = 0
@@ -371,6 +373,7 @@ def on_new_device(device_name, device_password):
     except Exception as e:
         lcd_component.brightness = 0
         print('Error: ' + str(e))
+
 
 def run_main():
     call = 0
@@ -388,17 +391,34 @@ def run_main():
         time.sleep(0.1)
 
 
+def pull_settings():
+    try:
+        response = device.client.pull_settings()
+        if response is not None:
+            payload = response.json()
+            isOk = payload.get('ok')
+            if not isOk:
+                print('Error: ' + payload.get('message'))
+                pass
+            data = payload.get('data')
+            if data is not None:
+                device.activation_mode = data.get('activationMode')
+                if device.activation_mode is None:
+                    device.activation_mode = ACTIVATION_ALWAYS
+                device.trigger_duration = data.get('triggerDuration')
+                if device.trigger_duration is None:
+                    device.trigger_duration = 5
+                device.cooldown = data.get('cooldown')
+                if device.cooldown is None:
+                    device.cooldown = 10
+    except Exception as e:
+        print('Error: ' + str(e))
+
+
 def run_pull():
     while True:
         if device.client is not None:
-            try:
-                response = device.client.pull_settings()
-                if response is not None:
-                    payload = response.json()
-                    isOk = payload.get('ok')
-                    print(str(isOk))
-            except Exception as e:
-                print('Error: ' + str(e))
+            pull_settings()
         time.sleep(5)
 
 
