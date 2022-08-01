@@ -189,9 +189,9 @@ class DeviceClient:
     def __init__(self, device_id):
         self.device_id = device_id
 
-    def send_data(self, data):
-        # requests.post(self.base_url, json=data)
-        pass
+    def pull_settings(self):
+        response = requests.get(base_url + '/devices/' + self.device_id + '/settings')
+        return response
 
 
 class Device:
@@ -311,50 +311,56 @@ base_url = "http://127.0.0.1:5000/"
 
 
 def on_connect(device_name, device_password):
-    data = {
-        'name': device_name,
-        'password': device_password
-    }
-    response = requests.post(base_url + 'devices/auth', json=data)
-    device.client = None
-    payload = response.json()
-    isOk = payload.get('ok')
-    if not isOk:
+    try:
+        data = {
+            'name': device_name,
+            'password': device_password
+        }
+        response = requests.post(base_url + 'devices/auth', json=data)
+        device.client = None
+        payload = response.json()
+        isOk = payload.get('ok')
+        if not isOk:
+            lcd_component.brightness = 0
+            print('Error: ' + payload.get('message'))
+            return
+        data = payload.get('data')
+        if data is not None and data.get("id") is not None:
+            lcd_component.brightness = 1
+            device.client = DeviceClient(data.get('id'))
+            print('Connected Device with device id, ' + str(data.get('id')))
+            return
         lcd_component.brightness = 0
-        print('Error: ' + payload.get('message'))
-        return
-    data = payload.get('data')
-    if data is not None and data.get("id") is not None:
-        lcd_component.brightness = 1
-        device.client = DeviceClient(data.get('id'))
-        print('Connected Device with device id, ' + str(data.get('id')))
-        return
-    lcd_component.brightness = 0
-    print('Failed to Connected Device')
-
+        print('Failed to Connected Device')
+    except Exception as e:
+        lcd_component.brightness = 0
+        print('Error: ' + str(e))
 
 def on_new_device(device_name, device_password):
-    data = {
-        'name': device_name,
-        'password': device_password
-    }
-    response = requests.post(base_url + 'devices', json=data)
-    device.client = None
-    payload = response.json()
-    isOk = payload.get('ok')
-    if not isOk:
+    try:
+        data = {
+            'name': device_name,
+            'password': device_password
+        }
+        response = requests.post(base_url + 'devices', json=data)
+        device.client = None
+        payload = response.json()
+        isOk = payload.get('ok')
+        if not isOk:
+            lcd_component.brightness = 0
+            print('Error: ' + payload.get('message'))
+            return
+        data = payload.get('data')
+        if data is not None:
+            lcd_component.brightness = 1
+            device.client = DeviceClient(data.get('id'))
+            print('Created Device with device id, ' + str(data.get('id')))
+            return
         lcd_component.brightness = 0
-        print('Error: ' + payload.get('message'))
-        return
-    data = payload.get('data')
-    if data is not None:
-        lcd_component.brightness = 1
-        device.client = DeviceClient(data.get('id'))
-        print('Created Device with device id, ' + str(data.get('id')))
-        return
-    lcd_component.brightness = 0
-    print('Failed to Create Device')
-
+        print('Failed to Create Device')
+    except Exception as e:
+        lcd_component.brightness = 0
+        print('Error: ' + str(e))
 
 def run_main():
     call = 0
@@ -372,16 +378,31 @@ def run_main():
         time.sleep(0.1)
 
 
+def run_pull():
+    while True:
+        if device.client is not None:
+            try:
+                data = device.client.pull_settings()
+                if data is not None:
+                    print(data)
+            except Exception as e:
+                print('Error: ' + str(e))
+        time.sleep(5)
+
+
 device_keypad = threading.Thread(
     target=lambda: run_device_keypad(lcd=lcd_component, keypad=keypad_component, on_connect=on_connect,
                                      on_new_device=on_new_device)
 )
 main_thread = threading.Thread(target=lambda: run_main())
+update_device_thread = threading.Thread(target=lambda: run_pull())
 
 # Start threads
 device_keypad.start()
 main_thread.start()
+update_device_thread.start()
 
 # Join threads
 device_keypad.join()
 main_thread.join()
+update_device_thread.join()
