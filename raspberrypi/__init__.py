@@ -190,7 +190,7 @@ class DeviceClient:
         self.device_id = device_id
 
     def pull_settings(self):
-        response = requests.get(base_url + '/devices/' + self.device_id + '/settings')
+        response = requests.get(base_url + '/devices/' + str(self.device_id) + '/settings')
         return response
 
 
