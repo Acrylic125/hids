@@ -21,6 +21,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 # Endpoints
 @app.route("/", methods=["GET", "POST"])
 def index():
+    print (request)
     if request.method == 'POST':
         msg = request.get_json()
         chat_id,txt = telebot.parse_message(msg)
@@ -33,6 +34,7 @@ def index():
                     telegram_user = repository.telegram_login(int(result['id']), int(chat_id))
                     if telegram_user == False:
                         telebot.tel_send_message(chat_id,"Failed to attach your account with your telegram. Please try again.")
+                    # contact_telegram_user  = repository.contact_telegram_users('1')
                     telebot.tel_send_message(chat_id,"Login Successful, You will now be notified when any devices belonging to you has been triggered.")
             except Exception:
                 print(traceback.format_exc())

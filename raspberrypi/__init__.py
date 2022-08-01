@@ -1,9 +1,9 @@
+import threading
 import time
 import requests
 import RPi.GPIO as GPIO
 import spidev
 import I2C_LCD_driver
-import threading
 from KeypadListener import run_device_keypad
 import subprocess
 import uuid
@@ -358,6 +358,8 @@ def on_new_device(device_name, device_password):
 
 def run_main():
     call = 0
+
+def run_main():
     while True:
         device.run()
         # lcd_component.set_text([str(device.is_motion_detected()), str(device.is_light_detected())])
@@ -368,6 +370,10 @@ def run_main():
         if device.should_trigger():
             call = call + 1
             print('Triggering' + str(call))
+            print("Stopped Triggering")
+            device.end_trigger()
+        if device.should_trigger():
+            print('Triggering')
             device.trigger()
         time.sleep(0.1)
 

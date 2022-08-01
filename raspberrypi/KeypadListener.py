@@ -50,6 +50,8 @@ class DeviceCredentialsMode:
     def on_device_password_entered(self, device_password):
         self.device_password = device_password
         self._switch_input(None)
+    def on_device_password_entered(self, device_password):
+        self.device_password = device_password
         self.on_complete(self.device_name, self.device_password)
 
     def on_device_name_entered(self, device_name):
@@ -57,6 +59,7 @@ class DeviceCredentialsMode:
         if self.current_input is not None:
             self.current_input.on_close()
         self._switch_input(TextInput(self.context, "Device password:", self.on_device_password_entered))
+        self.current_input = TextInput(self.context, "Device password:", self.on_device_password_entered)
 
     def on_init(self):
         pass
@@ -107,6 +110,9 @@ class KeypadListener:
         self.keypad = keypad
         self.on_connect = on_connect
         self.on_new_device = on_new_device
+    def __init__(self, lcd, keypad):
+        self.lcd = lcd
+        self.keypad = keypad
         self.mode = OptionsMode(self)
         self.mode.on_init()
 
@@ -127,8 +133,8 @@ class KeypadListener:
         return char
 
 
-def run_device_keypad(lcd, keypad, on_connect, on_new_device):
-    renamer = KeypadListener(lcd=lcd, keypad=keypad, on_connect=on_connect, on_new_device=on_new_device)
+def run_device_keypad(lcd, keypad):
+    renamer = KeypadListener(lcd=lcd, keypad=keypad)
     while True:
         renamer.run()
         time.sleep(0.1)
