@@ -338,6 +338,8 @@ def on_connect(device_name, device_password):
         if not isOk:
             lcd_component.brightness = 0
             print('Error: ' + payload.get('message'))
+            lcd_component.set_text(['Connection Failed'])
+            time.sleep(3)
             return
         data = payload.get('data')
         if data is not None and data.get("id") is not None:
@@ -346,12 +348,16 @@ def on_connect(device_name, device_password):
             device.client = DeviceClient(data.get('id'))
             pull_settings()
             print('Connected Device with device id, ' + str(data.get('id')))
+            lcd_component.set_text(['Connection Failed'])
+            time.sleep(3)
             return
-        lcd_component.brightness = 0
-        print('Failed to Connected Device')
+        print('Failed to Create Device')
+        lcd_component.set_text(['Connection Failed'])
+        time.sleep(3)
     except Exception as e:
-        lcd_component.brightness = 0
         print('Error: ' + str(e))
+        lcd_component.set_text(['Connection Failed'])
+        time.sleep(3)
 
 
 def on_new_device(device_name, device_password):
@@ -365,22 +371,26 @@ def on_new_device(device_name, device_password):
         payload = response.json()
         isOk = payload.get('ok')
         if not isOk:
-            lcd_component.brightness = 0
             print('Error: ' + payload.get('message'))
+            lcd_component.set_text(['Creation Failed'])
+            time.sleep(3)
             return
         data = payload.get('data')
         if data is not None:
-            lcd_component.brightness = 1
             device.id = str(data.get('id'))
             device.client = DeviceClient(data.get('id'))
             pull_settings()
             print('Created Device with device id, ' + str(data.get('id')))
+            lcd_component.set_text(['Creation Failed'])
+            time.sleep(3)
             return
-        lcd_component.brightness = 0
         print('Failed to Create Device')
+        lcd_component.set_text(['Creation Failed'])
+        time.sleep(3)
     except Exception as e:
-        lcd_component.brightness = 0
         print('Error: ' + str(e))
+        lcd_component.set_text(['Creation Failed'])
+        time.sleep(3)
 
 
 def run_main():
