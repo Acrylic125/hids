@@ -4,7 +4,8 @@ import RPi.GPIO as GPIO
 import spidev
 import I2C_LCD_driver
 import threading
-from KeypadListener import run_device_keypad
+# from KeypadListener import run_device_keypad
+from Keypad import HomeState, HIDSKeypad, TextIO
 import subprocess
 import uuid
 
@@ -313,6 +314,13 @@ device = Device(
     lcd=lcd_component,
     camera=camera_component
 )
+hids_keypad = HIDSKeypad(
+    io=TextIO(keypad=keypad_component, lcd=lcd_component),
+    initial_keypad_state=None,
+    new_device=(lambda name, password: on_new_device(name, password)),
+    connect=(lambda name, password: on_connect(name, password)),
+)
+hids_keypad.set_state(HomeState(hids_keypad))
 
 base_url = "http://127.0.0.1:5000/"
 
@@ -402,6 +410,7 @@ def pull_settings():
                 pass
             data = payload.get('data')
             if data is not None:
+                print(str(data))
                 device.activation_mode = data.get('activationMode')
                 if device.activation_mode is None:
                     device.activation_mode = ACTIVATION_ALWAYS
@@ -422,10 +431,7 @@ def run_pull():
         time.sleep(5)
 
 
-device_keypad = threading.Thread(
-    target=lambda: run_device_keypad(lcd=lcd_component, keypad=keypad_component, on_connect=on_connect,
-                                     on_new_device=on_new_device)
-)
+device_keypad = threading.Thread(target=lambda: hids_keypad.run())
 main_thread = threading.Thread(target=lambda: run_main())
 update_device_thread = threading.Thread(target=lambda: run_pull())
 
