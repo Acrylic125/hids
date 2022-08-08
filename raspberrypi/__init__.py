@@ -441,7 +441,13 @@ def run_pull():
         time.sleep(5)
 
 
-device_keypad = threading.Thread(target=lambda: hids_keypad.run())
+def run_keypad():
+    while True:
+        hids_keypad.run()
+        time.sleep(0.1)
+
+
+device_keypad = threading.Thread(target=lambda: run_keypad())
 main_thread = threading.Thread(target=lambda: run_main())
 update_device_thread = threading.Thread(target=lambda: run_pull())
 
