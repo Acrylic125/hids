@@ -249,7 +249,7 @@ def contact_telegram_users(device_id):
         "ON ud.user_id = tu.user_id "
         "INNER JOIN devices d "
         "ON d.id = ud.device_id "
-        "WHERE devices.id = ?", (device_id))
+        "WHERE d.id = ?", (device_id))
     result = cursor.fetchall()
     executor.done()
 
