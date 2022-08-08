@@ -10,7 +10,6 @@ class TextIO:
     def read(self):
         # return [input("key:")]
         char = self.keypad.get_value_from_keypad()
-        print(char)
         return char
 
     def write(self, text):
@@ -67,7 +66,6 @@ class HIDSKeypad:
             new_state.on_init()
 
     def run(self):
-        print("TTTTT")
         if self.keypad_state is not None:
             self.keypad_state.run()
 
