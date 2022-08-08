@@ -258,7 +258,7 @@ class Device:
         capture_image = self.camera.capture()
 
         capture_file = {'file': open(capture_image, 'rb')}
-        response = requests.post(base_url + "devices/1/captures", files=capture_file)
+        response = requests.post(base_url + "devices/" + self.id + "/captures", files=capture_file)
         print(response.json())
 
         self.last_triggered = time.time()
@@ -285,7 +285,7 @@ class Device:
             self.ldr.run()
 
 
-device = {
+default_device = {
     "id": "1",
     'name': 'Raspberry Pi',
     'triggerDuration': 1,
@@ -301,11 +301,11 @@ keypad_component = KeypadComponent(COL, ROW, KEYPAD_MATRIX)
 lcd_component = LCDComponent(driver_lcd)
 camera_component = CameraComponent()
 device = Device(
-    id=device['id'],
-    name=device['name'],
-    activation_mode=device['activationMode'],
-    trigger_duration=device['triggerDuration'],
-    cooldown=device['cooldown'],
+    id=default_device['id'],
+    name=default_device['name'],
+    activation_mode=default_device['activationMode'],
+    trigger_duration=default_device['triggerDuration'],
+    cooldown=default_device['cooldown'],
     motion_detector=motion_detector,
     led=led_component,
     buzzer=buzzer_component,
@@ -343,7 +343,6 @@ def on_connect(device_name, device_password):
             return
         data = payload.get('data')
         if data is not None and data.get("id") is not None:
-            lcd_component.brightness = 1
             device.id = str(data.get('id'))
             device.client = DeviceClient(data.get('id'))
             pull_settings()
@@ -420,7 +419,6 @@ def pull_settings():
                 pass
             data = payload.get('data')
             if data is not None:
-                print(str(data))
                 device.activation_mode = data.get('activationMode')
                 if device.activation_mode is None:
                     device.activation_mode = ACTIVATION_ALWAYS
