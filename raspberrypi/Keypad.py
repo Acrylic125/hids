@@ -10,6 +10,7 @@ class TextIO:
     def read(self):
         # return [input("key:")]
         char = self.keypad.get_value_from_keypad()
+        print(char)
         return char
 
     def write(self, text):
