@@ -322,7 +322,7 @@ hids_keypad = HIDSKeypad(
 )
 hids_keypad.set_state(HomeState(hids_keypad))
 
-base_url = "http://127.0.0.1:5000/"
+base_url = "https://kisekixcel01.pythonanywhere.com/" # "http://127.0.0.1:5000/"
 
 
 def on_connect(device_name, device_password):
