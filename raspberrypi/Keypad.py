@@ -67,6 +67,7 @@ class HIDSKeypad:
             new_state.on_init()
 
     def run(self):
+        print("TTTTT")
         if self.keypad_state is not None:
             self.keypad_state.run()
 
