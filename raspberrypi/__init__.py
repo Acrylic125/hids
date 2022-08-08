@@ -347,7 +347,7 @@ def on_connect(device_name, device_password):
             device.client = DeviceClient(data.get('id'))
             pull_settings()
             print('Connected Device with device id, ' + str(data.get('id')))
-            lcd_component.set_text(['Connection Failed'])
+            lcd_component.set_text(['Connected!'])
             time.sleep(3)
             return
         print('Failed to Create Device')
@@ -380,7 +380,7 @@ def on_new_device(device_name, device_password):
             device.client = DeviceClient(data.get('id'))
             pull_settings()
             print('Created Device with device id, ' + str(data.get('id')))
-            lcd_component.set_text(['Creation Failed'])
+            lcd_component.set_text(['Created!'])
             time.sleep(3)
             return
         print('Failed to Create Device')

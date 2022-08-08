@@ -243,14 +243,20 @@ def signup(username, email, password):
 def contact_telegram_users(device_id):
     executor = db.use_executor()
     cursor = executor.execute(
-        "SELECT chat_id FROM telegram_users INNER JOIN devices WHERE devices.id = ?", (device_id))
+        "SELECT tu.chat_id chat_id "
+        "FROM telegram_users tu "
+        "INNER JOIN user_devices ud "
+        "ON ud.user_id = tu.user_id "
+        "INNER JOIN devices d "
+        "ON d.id = ud.device_id "
+        "WHERE devices.id = ?", (device_id))
     result = cursor.fetchall()
     executor.done()
 
     if result is None:
         return None
     for telegram_chat_ids in result:
-        telebot.tel_send_message(telegram_chat_ids[0],"ALERT!!! \n Home Intruder Detection System <insert device name> has been activated ! ")
+        telebot.tel_send_message(telegram_chat_ids[0], "ALERT!!! \n Home Intruder Detection System <insert device name> has been activated ! ")
     return result
 
 def register(username, password):
