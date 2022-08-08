@@ -1,146 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>HIDS Dashboard</title>
 
     <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
-      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-      crossorigin="anonymous"
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+            integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+            crossorigin="anonymous"
     />
     <script
-      src="https://code.jquery.com/jquery-3.3.1.min.js"
-      integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-      crossorigin="anonymous"
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"
     ></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-      crossorigin="anonymous"
+            src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+            crossorigin="anonymous"
     ></script>
     <script
-      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-      crossorigin="anonymous"
+            src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+            crossorigin="anonymous"
     ></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css" />
-    <link rel="stylesheet" href="/static/styles/layout.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" href="/static/styles/layout.css"/>
     <script defer>
-      const BASE_API_URL = "http://127.0.0.1:5000/";
-      let userId 
+        const BASE_API_URL = "https://kisekixcel01.pythonanywhere.com/";
+        let userId;
 
-      function checkLogin() {
-        if (localStorage.getItem('user_id')) {
-          $('#login-btn').remove();
-          $('<button class="btn btn-primary btn-md py-0 px-3 w-100 btn-danger" id="logout-btn" >Log out</button>').insertBefore('#logout-btn-container');
+        function checkLogin() {
+            // localStorage.getItem('user_id')
+            if (userId !== undefined && userId > 0) {
+                $('#login-btn').remove();
+                $('<button class="btn btn-primary btn-md py-0 px-3 w-100 btn-danger" id="logout-btn" >Log out</button>').insertBefore('#logout-btn-container');
 
-          userId = localStorage.getItem('user_id');
+                // userId = localStorage.getItem('user_id');
 
-          $('.logged-in-content').removeClass("logged-in-content")
-          $('#signup-btn').addClass("logged-in-content")
-          selectDevice();
-          
-          $('body').on('click', '#logout-btn', function (e) {
-            localStorage.removeItem('user_id')
-            window.location.reload()
-          })
+                $('.logged-in-content').removeClass("logged-in-content")
+                $('#signup-btn').addClass("logged-in-content")
+                selectDevice();
+
+                $('body').on('click', '#logout-btn', function (e) {
+                    // localStorage.removeItem('user_id')
+                    userId = undefined;
+                    window.location.reload()
+                })
+            }
         }
-      }
 
-      const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-      // Communicate with backend.
-      async function getAllDevices(userId) {
-        const { data } = await axios.get(BASE_API_URL + `users/${userId}/devices`);
-        if (data === undefined || data === null || !data.ok) {
-          return [];
+        // Communicate with backend.
+        async function getAllDevices(userId) {
+            const {data} = await axios.get(BASE_API_URL + `users/${userId}/devices`);
+            if (data === undefined || data === null || !data.ok) {
+                return [];
+            }
+            return data.data instanceof Array ? data.data : [];
         }
-        return data.data instanceof Array ? data.data : [];
-      }
 
-      async function getDeviceCaptures(deviceId) {
-        const { data } = await axios.get(BASE_API_URL + `devices/${deviceId}/captures`);
-        if (data === undefined || data === null || !data.ok) {
-          return [];
+        async function getDeviceCaptures(deviceId) {
+            const {data} = await axios.get(BASE_API_URL + `devices/${deviceId}/captures`);
+            if (data === undefined || data === null || !data.ok) {
+                return [];
+            }
+            return data.data instanceof Array ? data.data : [];
         }
-        return data.data instanceof Array ? data.data : [];
-      }
 
-      async function getDeviceSettings(deviceId) {
-        const { data } = await axios.get(BASE_API_URL + `devices/${deviceId}/settings`);
-        if (data === undefined || data === null || !data.ok) {
-          return {};
+        async function getDeviceSettings(deviceId) {
+            const {data} = await axios.get(BASE_API_URL + `devices/${deviceId}/settings`);
+            if (data === undefined || data === null || !data.ok) {
+                return {};
+            }
+            return data.data !== undefined && data.data !== null ? data.data : {};
         }
-        return data.data !== undefined && data.data !== null ? data.data : {};
-      }
 
-      async function postUserDevice(userId, { name, password }) {
-        const { data } = await axios.post(BASE_API_URL + `users/${userId}/devices`, {
-          name,
-          password,
-        });
-        // if (!payload.ok) {
-        //   throw new Error(payload.message);
-        // }
-        return data.data !== undefined && data.data !== null ? data.data : {};
-      }
+        async function postUserDevice(userId, {name, password}) {
+            const {data} = await axios.post(BASE_API_URL + `users/${userId}/devices`, {
+                name,
+                password,
+            });
+            // if (!payload.ok) {
+            //   throw new Error(payload.message);
+            // }
+            return data.data !== undefined && data.data !== null ? data.data : {};
+        }
 
-      async function putDeviceSettings(deviceId, { triggerDuration, cooldown, activationMode }) {
-        const result = await axios.put(BASE_API_URL + `devices/${deviceId}/settings`, {
-          triggerDuration,
-          cooldown,
-          activationMode,
-        });
-      }
+        async function putDeviceSettings(deviceId, {triggerDuration, cooldown, activationMode}) {
+            const result = await axios.put(BASE_API_URL + `devices/${deviceId}/settings`, {
+                triggerDuration,
+                cooldown,
+                activationMode,
+            });
+        }
 
-      async function postUserLogin({ username, password }) {
-        const { data } = await axios.post(BASE_API_URL + `/login`, {
-          username,
-          password,
-        });
-        console.log(data)
-        return data.data !== undefined && data.data !== null ? data.data : {};
-      }
+        async function postUserLogin({username, password}) {
+            const {data} = await axios.post(BASE_API_URL + `/login`, {
+                username,
+                password,
+            });
+            console.log(data)
+            return data.data !== undefined && data.data !== null ? data.data : {};
+        }
 
-      async function postUserSignup({ username, password }) {
-        const { data } = await axios.post(BASE_API_URL + `/signup`, {
-          username,
-          password,
-        });
-        console.log(data)
-        return data.data !== undefined && data.data !== null ? data.data : {};
-      }
+        async function postUserSignup({username, password}) {
+            const {data} = await axios.post(BASE_API_URL + `/signup`, {
+                username,
+                password,
+            });
+            console.log(data)
+            return data.data !== undefined && data.data !== null ? data.data : {};
+        }
 
-      // HTML Element creation.
-      function createDeviceSidebarElement({ id, name }) {
-        const element = $(`
+        // HTML Element creation.
+        function createDeviceSidebarElement({id, name}) {
+            const element = $(`
                 <button class="btn bg-transparent text-left text-white">${name}</button>
             `);
-        element.click(function () {
-          selectDevice(id);
-        });
-        return element;
-      }
+            element.click(function () {
+                selectDevice(id);
+            });
+            return element;
+        }
 
-      function createSelectedDeviceSidebarElement({ name }) {
-        const element = $(`
+        function createSelectedDeviceSidebarElement({name}) {
+            const element = $(`
                 <button class="btn btn-primary text-left">${name}</button>
             `);
-        return element;
-      }
+            return element;
+        }
 
-      function createDeviceCaptureElement({ imageLoc, captureTime }) {
-        const date = new Date(captureTime * 1000);
-        const dateString = `${date.getUTCDate()} ${
-          SHORT_MONTHS[date.getMonth()]
-        } ${date.getFullYear()}, at ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-        const element = $(`
+        function createDeviceCaptureElement({imageLoc, captureTime}) {
+            const date = new Date(captureTime * 1000);
+            const dateString = `${date.getUTCDate()} ${
+                    SHORT_MONTHS[date.getMonth()]
+                    } ${date.getFullYear()}, at ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+            const element = $(`
                    <div class="col-12 col-md-6 col-lg-4 col-xl-3 p-2">
                         <div class="card col-12 p-0 border-0">
                             <img class="card-img-top" src="${BASE_API_URL}capture-images/${imageLoc}" alt="Image not found"
@@ -150,436 +152,460 @@
                             </div>
                         </div>
                     </div>`);
-        return element;
-      }
+            return element;
+        }
 
-      function createMessageElement({ headerMessage, message, classType }) {
-        return $(`
+        function createMessageElement({headerMessage, message, classType}) {
+            return $(`
             <div class="w-100 p-3 ${classType}">
                 <p class="my-0 text-white font-weight-bold">${headerMessage}</p>
                 <p class="my-0 text-white w-75">${message}</p>
             </div>`);
-      }
-
-      // Showing and hiding elements.
-      function showDevicesSidear(devices = [], selectedDeviceId) {
-        const devicesElement = $("#devices");
-        devicesElement.empty();
-        devices.forEach((device) => {
-          let element = createDeviceSidebarElement(device);
-          if (device.id === selectedDeviceId) {
-            element = createSelectedDeviceSidebarElement(device);
-          }
-          devicesElement.append(element);
-        });
-      }
-
-      function showDeviceCaptures(deviceCaptures) {
-        const deviceCapturesElement = $("#device-captures");
-        deviceCapturesElement.empty();
-        deviceCaptures.forEach((deviceCapture) => {
-          const element = createDeviceCaptureElement(deviceCapture);
-          deviceCapturesElement.append(element);
-        });
-      }
-
-      // Selecting and deselecting devices and captures.
-      async function selectDevice(deviceId) {
-        console.log(userId)
-        const devices = await getAllDevices(userId);
-        showDevicesSidear(devices, deviceId);
-
-        const noDeviceSelectedElement = $("#no-device-selected");
-        const deviceElement = $("#device");
-        noDeviceSelectedElement.removeClass("hide");
-        deviceElement.addClass("hide");
-        if (deviceId !== undefined) {
-          const deviceCaptures = await getDeviceCaptures(deviceId);
-          await populateSettings(deviceId);
-          showDeviceCaptures(deviceCaptures);
-          listenUpdateDeviceSettingsForm(deviceId);
-          noDeviceSelectedElement.addClass("hide");
-          deviceElement.removeClass("hide");
         }
-      }
 
-      async function populateSettings(deviceId) {
-        const deviceSettings = await getDeviceSettings(deviceId);
-        const { triggerDuration, cooldown, activationMode } = deviceSettings;
-        $("#d-setting-trigger-duration-input").val(triggerDuration);
-        $("#d-setting-cooldown-input").val(cooldown);
-        $("#d-setting-activation-mode-input").val(activationMode);
-        return deviceSettings;
-      }
-
-      // Event listeners.
-      function listenAddDeviceForm() {
-        const formElement = $("#add-device-form");
-        formElement.submit(async function (event) {
-          event.preventDefault();
-          const name = $("#add-device-name-input").val();
-          const password = $("#add-device-password-input").val();
-          try {
-            const { id } = await postUserDevice(userId, { name, password });
-            if (id === undefined || id === null) {
-              throw new Error("Device not created.");
-            }
-            selectDevice(id);
-            $("#add-device-name-input").val("");
-            $("#add-device-password-input").val("");
-            $("#add-device-messages")
-              .empty()
-              .append(
-                createMessageElement({
-                  headerMessage: "Success",
-                  message: "Device added successfully",
-                  classType: "bg-success",
-                })
-              );
-          } catch (err) {
-            console.error(err);
-            $("#add-device-messages")
-              .empty()
-              .append(
-                createMessageElement({
-                  headerMessage: "Error",
-                  message: (err.response && err.response.data && err.response.data.message) || "Unknown error.",
-                  classType: "bg-danger",
-                })
-              );
-          }
-        });
-      }
-
-      function listenUpdateDeviceSettingsForm(deviceId) {
-        const formElement = $("#update-device-form");
-        formElement.unbind("submit");
-        formElement.submit(async function (event) {
-          event.preventDefault();
-          const triggerDuration = $("#d-setting-trigger-duration-input").val();
-          const cooldown = $("#d-setting-cooldown-input").val();
-          const activationMode = $("#d-setting-activation-mode-input").val();
-          if (isNaN(triggerDuration) || isNaN(cooldown)) {
-            alert("Please enter valid numbers for trigger duration and cooldown.");
-            return;
-          }
-          try {
-            await putDeviceSettings(deviceId, {
-              triggerDuration: parseFloat(triggerDuration),
-              cooldown: parseFloat(cooldown),
-              activationMode: activationMode,
+        // Showing and hiding elements.
+        function showDevicesSidear(devices = [], selectedDeviceId) {
+            const devicesElement = $("#devices");
+            devicesElement.empty();
+            devices.forEach((device) => {
+                let element = createDeviceSidebarElement(device);
+                if (device.id === selectedDeviceId) {
+                    element = createSelectedDeviceSidebarElement(device);
+                }
+                devicesElement.append(element);
             });
-          } catch (err) {
-            $("#settings-messages")
-              .empty()
-              .append(
-                createMessageElement({
-                  headerMessage: "Error",
-                  message: (err.response && err.response.data && err.response.data.message) || "Unknown error.",
-                  classType: "bg-danger",
-                })
-              );
-          }
-        });
-      }
+        }
 
-      function listenLoginForm() {
-        const formElement = $("#login-form");
-        formElement.submit(async function (event) {
-          event.preventDefault();
-          const username = $("#login-username-input").val();
-          const password = $("#login-password-input").val();
-          try {
-            const id = await postUserLogin({ username, password });
-            if (id === undefined || id === null) {
-              throw new Error("Login Failed");
+        function showDeviceCaptures(deviceCaptures) {
+            const deviceCapturesElement = $("#device-captures");
+            deviceCapturesElement.empty();
+            deviceCaptures.forEach((deviceCapture) => {
+                const element = createDeviceCaptureElement(deviceCapture);
+                deviceCapturesElement.append(element);
+            });
+        }
+
+        // Selecting and deselecting devices and captures.
+        async function selectDevice(deviceId) {
+            console.log(userId)
+            const devices = await getAllDevices(userId);
+            showDevicesSidear(devices, deviceId);
+
+            const noDeviceSelectedElement = $("#no-device-selected");
+            const deviceElement = $("#device");
+            noDeviceSelectedElement.removeClass("hide");
+            deviceElement.addClass("hide");
+            if (deviceId !== undefined) {
+                const deviceCaptures = await getDeviceCaptures(deviceId);
+                await populateSettings(deviceId);
+                showDeviceCaptures(deviceCaptures);
+                listenUpdateDeviceSettingsForm(deviceId);
+                noDeviceSelectedElement.addClass("hide");
+                deviceElement.removeClass("hide");
             }
-            localStorage.setItem('user_id', id.id)
+        }
+
+        async function populateSettings(deviceId) {
+            const deviceSettings = await getDeviceSettings(deviceId);
+            const {triggerDuration, cooldown, activationMode} = deviceSettings;
+            $("#d-setting-trigger-duration-input").val(triggerDuration || 1);
+            $("#d-setting-cooldown-input").val(cooldown || 5);
+            $("#d-setting-activation-mode-input").val(activationMode || "ALWAYS");
+            return deviceSettings;
+        }
+
+        // Event listeners.
+        function listenAddDeviceForm() {
+            const formElement = $("#add-device-form");
+            formElement.submit(async function (event) {
+                event.preventDefault();
+                const name = $("#add-device-name-input").val();
+                const password = $("#add-device-password-input").val();
+                try {
+                    const {id} = await postUserDevice(userId, {name, password});
+                    if (id === undefined || id === null) {
+                        throw new Error("Device not created.");
+                    }
+                    selectDevice(id);
+                    $("#add-device-name-input").val("");
+                    $("#add-device-password-input").val("");
+                    $("#add-device-messages")
+                            .empty()
+                            .append(
+                                    createMessageElement({
+                                        headerMessage: "Success",
+                                        message: "Device added successfully",
+                                        classType: "bg-success",
+                                    })
+                            );
+                } catch (err) {
+                    console.error(err);
+                    $("#add-device-messages")
+                            .empty()
+                            .append(
+                                    createMessageElement({
+                                        headerMessage: "Error",
+                                        message: (err.response && err.response.data && err.response.data.message) || "Unknown error.",
+                                        classType: "bg-danger",
+                                    })
+                            );
+                }
+            });
+        }
+
+        function listenUpdateDeviceSettingsForm(deviceId) {
+            const formElement = $("#update-device-form");
+            formElement.unbind("submit");
+            formElement.submit(async function (event) {
+                event.preventDefault();
+                const triggerDuration = $("#d-setting-trigger-duration-input").val();
+                const cooldown = $("#d-setting-cooldown-input").val();
+                const activationMode = $("#d-setting-activation-mode-input").val();
+                if (isNaN(triggerDuration) || isNaN(cooldown)) {
+                    alert("Please enter valid numbers for trigger duration and cooldown.");
+                    return;
+                }
+                console.log(deviceId + " : " + userId)
+                try {
+                    await putDeviceSettings(deviceId, {
+                        triggerDuration: parseFloat(triggerDuration),
+                        cooldown: parseFloat(cooldown),
+                        activationMode: activationMode,
+                    });
+                    $("#settings-messages")
+                            .empty()
+                            .append(
+                                    createMessageElement({
+                                        headerMessage: "Success",
+                                        message: "Device updated successfully",
+                                        classType: "bg-success",
+                                    })
+                            );
+                } catch (err) {
+                    $("#settings-messages")
+                            .empty()
+                            .append(
+                                    createMessageElement({
+                                        headerMessage: "Error",
+                                        message: (err.response && err.response.data && err.response.data.message) || "Unknown error.",
+                                        classType: "bg-danger",
+                                    })
+                            );
+                }
+            });
+        }
+
+        function listenLoginForm() {
+            const formElement = $("#login-form");
+            formElement.submit(async function (event) {
+                event.preventDefault();
+                const username = $("#login-username-input").val();
+                const password = $("#login-password-input").val();
+                try {
+                    const id = await postUserLogin({username, password});
+                    if (id === undefined || id === null) {
+                        throw new Error("Login Failed");
+                    }
+                    userId = id.id;
+                    // localStorage.setItem('user_id', id.id)
+                    checkLogin();
+
+                    $("#login-messages")
+                            .empty()
+                            .append(
+                                    createMessageElement({
+                                        headerMessage: "Success",
+                                        message: "Successfully Logged in !",
+                                        classType: "bg-success",
+                                    })
+                            );
+
+                    $('#login-modal').modal('toggle');
+
+                } catch (err) {
+                    console.error(err);
+                    $("#login-messages")
+                            .empty()
+                            .append(
+                                    createMessageElement({
+                                        headerMessage: "Error",
+                                        message: (err.response && err.response.data && err.response.data.message) || "Unknown error.",
+                                        classType: "bg-danger",
+                                    })
+                            );
+                }
+            });
+        }
+
+        function listenSignupForm() {
+            const formElement = $("#signup-form");
+            formElement.submit(async function (event) {
+                event.preventDefault();
+                const username = $("#signup-username-input").val();
+                const password = $("#signup-password-input").val();
+                try {
+                    const id = await postUserSignup({username, password});
+                    if (id === undefined || id === null) {
+                        throw new Error("signup Failed");
+                    }
+                    // localStorage.setItem('user_id', id.id)
+                    // checkLogin();
+
+                    $("#signup-messages")
+                            .empty()
+                            .append(
+                                    createMessageElement({
+                                        headerMessage: "Success",
+                                        message: "Successfully Signed up !",
+                                        classType: "bg-success",
+                                    })
+                            );
+
+                } catch (err) {
+                    console.error(err);
+                    $("#signup-messages")
+                            .empty()
+                            .append(
+                                    createMessageElement({
+                                        headerMessage: "Error",
+                                        message: (err.response && err.response.data && err.response.data.message) || "Unknown error.",
+                                        classType: "bg-danger",
+                                    })
+                            );
+                }
+            });
+        }
+
+
+        $(document).ready(function () {
+            selectDevice();
+            listenAddDeviceForm();
+            listenLoginForm();
+            listenSignupForm();
             checkLogin();
-
-            $("#login-messages")
-              .empty()
-              .append(
-                createMessageElement({
-                  headerMessage: "Success",
-                  message: "Successfully Logged in !",
-                  classType: "bg-success",
-                })
-              );
-
-              $('#login-modal').modal('toggle');
-              
-          } catch (err) {
-            console.error(err);
-            $("#login-messages")
-              .empty()
-              .append(
-                createMessageElement({
-                  headerMessage: "Error",
-                  message: (err.response && err.response.data && err.response.data.message) || "Unknown error.",
-                  classType: "bg-danger",
-                })
-              );
-          }
         });
-      }
-
-      function listenSignupForm() {
-        const formElement = $("#signup-form");
-        formElement.submit(async function (event) {
-          event.preventDefault();
-          const username = $("#signup-username-input").val();
-          const password = $("#signup-password-input").val();
-          try {
-            const id = await postUserSignup({ username, password });
-            if (id === undefined || id === null) {
-              throw new Error("signup Failed");
-            }
-            // localStorage.setItem('user_id', id.id)
-            // checkLogin();
-
-            $("#signup-messages")
-              .empty()
-              .append(
-                createMessageElement({
-                  headerMessage: "Success",
-                  message: "Successfully Signed up !",
-                  classType: "bg-success",
-                })
-              );
-              
-          } catch (err) {
-            console.error(err);
-            $("#signup-messages")
-              .empty()
-              .append(
-                createMessageElement({
-                  headerMessage: "Error",
-                  message: (err.response && err.response.data && err.response.data.message) || "Unknown error.",
-                  classType: "bg-danger",
-                })
-              );
-          }
-        });
-      }
-
-
-
-      $(document).ready(function () {
-        selectDevice();
-        listenAddDeviceForm();
-        listenLoginForm();
-        listenSignupForm();
-        checkLogin();
-      });
     </script>
 
 
-  </head>
+</head>
 
-  <body class="p-0 m-0 text-white">
-    <div class="w-100 bg-dark row m-0">
-      <aside class="bg-darker col-12 col-md-3 col-xl-2 h-screen p-3 logged-in-content">
+<body class="p-0 m-0 text-white">
+<div class="w-100 bg-dark row m-0">
+    <aside class="bg-darker col-12 col-md-3 col-xl-2 h-screen p-3 logged-in-content">
         <div id="logout-btn-container">
 
         </div>
         <div>
-          <h1 class="h5 font-weight-bold mt-5">HIDS</h1>
+            <h1 class="h5 font-weight-bold mt-5">HIDS</h1>
         </div>
         <div class="d-flex flex-row justify-content-between align-items-center mt-5">
-          <h5 class="h5 font-weight-bold">Devices</h5>
-          <button class="btn btn-primary btn-sm py-0 px-3" data-toggle="modal" data-target="#add-device-modal">Add</button>
+            <h5 class="h5 font-weight-bold">Devices</h5>
+            <button class="btn btn-primary btn-sm py-0 px-3" data-toggle="modal" data-target="#add-device-modal">Add
+            </button>
         </div>
         <div class="w-100 bg-dark line my-2"></div>
         <div id="devices" class="h-50 list-group overflow-y-scroll"></div>
-      </aside>
-      <main class="bg-dark col-12 col-md-9 col-xl-10 h-screen p-5 overflow-y-scroll ">
+    </aside>
+    <main class="bg-dark col-12 col-md-9 col-xl-10 h-screen p-5 overflow-y-scroll ">
         <div id="auth-container">
-          <button class="btn btn-success btn-md py-0 px-3 w-100" id="login-btn" data-toggle="modal" data-target="#login-modal">Login</button>
-          <button class="btn btn-primary btn-md py-0 px-3 w-100 mt-3" id="signup-btn" data-toggle="modal" data-target="#signup-modal">Sign-up</button>
+            <button class="btn btn-primary btn-md py-0 px-3 w-100" id="login-btn" data-toggle="modal"
+                    data-target="#login-modal">Login
+            </button>
+            <button class="btn btn-outline-primary btn-md py-0 px-3 w-100 mt-3" id="signup-btn" data-toggle="modal"
+                    data-target="#signup-modal">Sign-up
+            </button>
         </div>
-          <div id="no-device-selected" class="d-flex justify-content-center align-items-center w-100 h-100">
-            <h2 class="text-white w-25 text-center logged-in-content">No Device Selected. Select a device or Click the “Add” button to add a new device.</h2>
-          </div>
-          <div id="device" class="w-100 h-100 logged-in-content">
+        <div id="no-device-selected" class="d-flex justify-content-center align-items-center w-100 h-100">
+            <h2 class="text-white w-25 text-center logged-in-content">No Device Selected. Select a device or Click the
+                “Add” button to add a new device.</h2>
+        </div>
+        <div id="device" class="w-100 h-100 logged-in-content">
             <h1 id="selected-device-name" class="py-3 font-weight-bold">Device 1</h1>
             <section id="dashboard-container" class="w-100 mt-3">
-              <header class="d-flex flex-row">
-                <!-- <button class="btn btn-primary">Activate Device</button> -->
-                <button class="btn btn-outline-primary ml-2" data-toggle="modal" data-target="#device-settings-modal">Device Settings</button>
-              </header>
-              <div id="device-captures" class="row p-3 mt-3"></div>
+                <header class="d-flex flex-row">
+                    <!-- <button class="btn btn-primary">Activate Device</button> -->
+                    <button class="btn btn-outline-primary ml-2" data-toggle="modal"
+                            data-target="#device-settings-modal">Device Settings
+                    </button>
+                </header>
+                <div id="device-captures" class="row p-3 mt-3"></div>
             </section>
-          </div>
-      </main>
-    </div>
-    <!-- Add Device Modal -->
-    <div class="modal fade" id="add-device-modal" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content bg-dark text-white">
-          <div class="modal-header">
-            <h5 class="modal-title font-weight-bold">Add New Device</h5>
-            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form id="add-device-form">
-              <div class="form-group mt-3">
-                <label for="add-device-name-input">Device Name</label>
-                <input type="text" id="add-device-name-input" class="form-control" name="deviceName" placeholder="Device Name" required />
-              </div>
-              <div class="form-group mt-3">
-                <label for="add-device-password-input">Device Password</label>
-                <input
-                  type="password"
-                  id="add-device-password-input"
-                  class="form-control"
-                  name="devicePassword"
-                  placeholder="Device Password"
-                  required
-                />
-              </div>
-              <div class="mt-5">
-                <div id="add-device-messages"></div>
-                <button type="submit" class="btn btn-primary mt-3">Add Device</button>
-              </div>
-            </form>
-          </div>
         </div>
-      </div>
-    </div>
-    <!-- Device Settings Modal -->
-    <div class="modal fade" id="device-settings-modal" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    </main>
+</div>
+<!-- Add Device Modal -->
+<div class="modal fade" id="add-device-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content bg-dark text-white">
-          <div class="modal-header">
-            <h5 class="modal-title font-weight-bold">Device Settings</h5>
-            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form id="update-device-form">
-              <!-- Trigger Duration -->
-              <p class="font-weight-bold mt-3 mb-0">Trigger Duration</p>
-              <div class="row form-group mt-1 px-3">
-                <div class="d-flex flex-column col-9 p-0">
-                  <label for="d-setting-trigger-duration-input" class="my-0">Turn off after triggering</label>
-                  <small class="font-weight-light">in Seconds</small>
-                </div>
-                <div class="col-3">
-                  <input type="number" id="d-setting-trigger-duration-input" class="form-control" name="triggerDuration" placeholder="30s" />
-                </div>
-              </div>
-              <!-- Cooldown -->
-              <p class="font-weight-bold mt-5 mb-0">Cooldown</p>
-              <div class="row form-group mt-1 px-3">
-                <div class="d-flex flex-column col-9 p-0">
-                  <label for="d-setting-cooldown-input" class="my-0">Start listening after trigger</label>
-                  <small class="font-weight-light">in Seconds</small>
-                </div>
-                <div class="col-3">
-                  <input type="number" id="d-setting-cooldown-input" class="form-control" name="cooldown" placeholder="30s" />
-                </div>
-              </div>
-              <!-- Detector -->
-              <p class="font-weight-bold mt-5 mb-0">Detector</p>
-              <div class="row form-group mt-1 px-3">
-                <div class="d-flex flex-column col-9 p-0">
-                  <label for="d-setting-activation-mode-input" class="my-0">Activation Mode</label>
-                </div>
-                <div class="col-3">
-                  <select id="d-setting-activation-mode-input" class="w-100 form-control form-select w-25 border-none" name="activationMode">
-                    <option value="ALWAYS">Always Active</option>
-                    <option value="LIGHTS_OFF">When Lights Off</option>
-                    <option value="DISABLED">Disabled</option>
-                  </select>
-                </div>
-              </div>
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-bold">Add New Device</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="add-device-form">
+                    <div class="form-group mt-3">
+                        <label for="add-device-name-input">Device Name</label>
+                        <input type="text" id="add-device-name-input" class="form-control" name="deviceName"
+                               placeholder="Device Name" required/>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="add-device-password-input">Device Password</label>
+                        <input
+                                type="password"
+                                id="add-device-password-input"
+                                class="form-control"
+                                name="devicePassword"
+                                placeholder="Device Password"
+                                required
+                        />
+                    </div>
+                    <div class="mt-5">
+                        <div id="add-device-messages"></div>
+                        <button type="submit" class="btn btn-primary mt-3">Add Device</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Device Settings Modal -->
+<div class="modal fade" id="device-settings-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-bold">Device Settings</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="update-device-form">
+                    <!-- Trigger Duration -->
+                    <p class="font-weight-bold mt-3 mb-0">Trigger Duration</p>
+                    <div class="row form-group mt-1 px-3">
+                        <div class="d-flex flex-column col-9 p-0">
+                            <label for="d-setting-trigger-duration-input" class="my-0">Turn off after triggering</label>
+                            <small class="font-weight-light">in Seconds</small>
+                        </div>
+                        <div class="col-3">
+                            <input type="number" id="d-setting-trigger-duration-input" class="form-control"
+                                   name="triggerDuration" placeholder="30s" value="1" required/>
+                        </div>
+                    </div>
+                    <!-- Cooldown -->
+                    <p class="font-weight-bold mt-5 mb-0">Cooldown</p>
+                    <div class="row form-group mt-1 px-3">
+                        <div class="d-flex flex-column col-9 p-0">
+                            <label for="d-setting-cooldown-input" class="my-0">Start listening after trigger</label>
+                            <small class="font-weight-light">in Seconds</small>
+                        </div>
+                        <div class="col-3">
+                            <input type="number" id="d-setting-cooldown-input" class="form-control" name="cooldown"
+                                   placeholder="30s" value="5" required/>
+                        </div>
+                    </div>
+                    <!-- Detector -->
+                    <p class="font-weight-bold mt-5 mb-0">Detector</p>
+                    <div class="row form-group mt-1 px-3">
+                        <div class="d-flex flex-column col-9 p-0">
+                            <label for="d-setting-activation-mode-input" class="my-0">Activation Mode</label>
+                        </div>
+                        <div class="col-3">
+                            <select id="d-setting-activation-mode-input"
+                                    class="w-100 form-control form-select w-25 border-none" name="activationMode">
+                                <option value="ALWAYS">Always Active</option>
+                                <option value="LIGHTS_OFF">When Lights Off</option>
+                                <option value="DISABLED">Disabled</option>
+                            </select>
+                        </div>
+                    </div>
 
-              <div class="mt-5">
-                <div id="settings-messages"></div>
-                <button type="submit" class="btn btn-primary mt-3">Update Settings</button>
-              </div>
-            </form>
-          </div>
+                    <div class="mt-5">
+                        <div id="settings-messages"></div>
+                        <button type="submit" class="btn btn-primary mt-3">Update Settings</button>
+                    </div>
+                </form>
+            </div>
         </div>
-      </div>
     </div>
-    
-        <!-- Login Modal -->
-        <div class="modal fade" id="login-modal" tabindex="-1" role="dialog" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content bg-dark text-white">
-              <div class="modal-header">
+</div>
+
+<!-- Login Modal -->
+<div class="modal fade" id="login-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
                 <h5 class="modal-title font-weight-bold">Login</h5>
                 <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
+                    <span aria-hidden="true">&times;</span>
                 </button>
-              </div>
-              <div class="modal-body">
-                <form id="login-form">
-                  <div class="form-group mt-3">
-                    <label for="login-username-input">Username</label>
-                    <input type="text" id="login-username-input" class="form-control" name="userName" placeholder="Username" required />
-                  </div>
-                  <div class="form-group mt-3">
-                    <label for="login-password-input">Password</label>
-                    <input
-                      type="password"
-                      id="login-password-input"
-                      class="form-control"
-                      name="password"
-                      placeholder="Password"
-                      required
-                    />
-                  </div>
-                  <div class="mt-5">
-                    <div id="login-messages"></div>
-                    <button type="submit" class="btn btn-primary mt-3">Login</button>
-                  </div>
-                </form>
-              </div>
             </div>
-          </div>
+            <div class="modal-body">
+                <form id="login-form">
+                    <div class="form-group mt-3">
+                        <label for="login-username-input">Username</label>
+                        <input type="text" id="login-username-input" class="form-control" name="userName"
+                               placeholder="Username" required/>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="login-password-input">Password</label>
+                        <input
+                                type="password"
+                                id="login-password-input"
+                                class="form-control"
+                                name="password"
+                                placeholder="Password"
+                                required
+                        />
+                    </div>
+                    <div class="mt-5">
+                        <div id="login-messages"></div>
+                        <button type="submit" class="btn btn-primary mt-3">Login</button>
+                    </div>
+                </form>
+            </div>
         </div>
+    </div>
+</div>
 
-        <!-- Signup Modal -->
-        <div class="modal fade" id="signup-modal" tabindex="-1" role="dialog" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content bg-dark text-white">
-              <div class="modal-header">
+<!-- Signup Modal -->
+<div class="modal fade" id="signup-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
                 <h5 class="modal-title font-weight-bold">Sign up</h5>
                 <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
+                    <span aria-hidden="true">&times;</span>
                 </button>
-              </div>
-              <div class="modal-body">
-                <form id="signup-form">
-                  <div class="form-group mt-3">
-                    <label for="signup-username-input">Username</label>
-                    <input type="text" id="signup-username-input" class="form-control" name="userName" placeholder="Username" required />
-                  </div>
-                  <div class="form-group mt-3">
-                    <label for="signup-password-input">Password</label>
-                    <input
-                      type="password"
-                      id="signup-password-input"
-                      class="form-control"
-                      name="password"
-                      placeholder="Password"
-                      required
-                    />
-                  </div>
-                  <div class="mt-5">
-                    <div id="signup-messages"></div>
-                    <button type="submit" class="btn btn-primary mt-3">Register</button>
-                  </div>
-                </form>
-              </div>
             </div>
-          </div>
+            <div class="modal-body">
+                <form id="signup-form">
+                    <div class="form-group mt-3">
+                        <label for="signup-username-input">Username</label>
+                        <input type="text" id="signup-username-input" class="form-control" name="userName"
+                               placeholder="Username" required/>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="signup-password-input">Password</label>
+                        <input
+                                type="password"
+                                id="signup-password-input"
+                                class="form-control"
+                                name="password"
+                                placeholder="Password"
+                                required
+                        />
+                    </div>
+                    <div class="mt-5">
+                        <div id="signup-messages"></div>
+                        <button type="submit" class="btn btn-primary mt-3">Register</button>
+                    </div>
+                </form>
+            </div>
         </div>
-  </body>
+    </div>
+</div>
+</body>
 </html>
